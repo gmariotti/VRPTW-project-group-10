@@ -1,6 +1,6 @@
 package com.vrptw;
 
-import com.TabuSearch.MovesType;
+import com.tabusearch.MovesType;
 
 public class Parameters {
 	private MovesType movesType;
@@ -13,30 +13,28 @@ public class Parameters {
 	private int tabuTenure;
 	private boolean variableTenure;
 	private String currDir;
-	private boolean graphics;
 	
 	public Parameters() {
-		/*currDir 			= System.getProperty("user.dir");
+		currDir 			= System.getProperty("user.dir");
 		outputFileName    	= currDir + "/output/solutions.csv";
-		movesType         	= MovesType.SWAP;
+//		movesType         	= MovesType.SWAP;
 		precision         	= 1E-2;
 		iterations        	= 1000;
 		startClient       	= -1;
 		tabuTenure        	= -1;
 		randomSeed		  	= -1;
 		variableTenure    	= false;
-		graphics          	= false;*/
 	}
 	
 	public void updateParameters(String[] args) throws Exception
 	{
 		// TODO
-		/*if(args.length % 2 == 0){
+		if(args.length % 2 == 0){
 			for(int i = 0; i < args.length; i += 2){
 				switch (args[i]) {
-					case "-mT":
-						movesType = MovesType.SWAP;
-						break;
+//					case "-mT":
+//						movesType = MovesType.SWAP;
+//						break;
 					case "-if":
 						inputFileName = args[i+1];
 						break;
@@ -60,21 +58,12 @@ public class Parameters {
 						break;
 					case "-vt":
 						if(args[i+1].equalsIgnoreCase("true")){
-							setVariableTenure(true);
+							variableTenure = true;
 						}else if(args[i+1].equalsIgnoreCase("false")){
-							setVariableTenure(false);
+							variableTenure = false;
 						}else {
 							System.out.println("Variable tenure argument must be true of false. Set to default false!");
 							throw new Exception();
-						}
-						break;
-					case "-g":
-						if(args[i+1].equalsIgnoreCase("on")){
-							setGraphics(true);
-						}else if(args[i+1].equalsIgnoreCase("off")){
-							setGraphics(false);
-						}else {
-							System.out.println("Graphics argument must be on of off. Set to default off!");
 						}
 						break;
 					default: {
@@ -86,7 +75,24 @@ public class Parameters {
 		}else {
 			System.out.println("Parameters are not in correct format");
 			throw new Exception();
-		}*/
+		}
+	}
+
+	public int getRandomSeed() {
+		return randomSeed;
+	}
+
+	public String getCurrDir() {
+		return currDir;
+	}
+
+	public String getInputFileName() {
+		return inputFileName;
+	}
+
+	public Object getMovesType() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

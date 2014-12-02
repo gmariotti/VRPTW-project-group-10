@@ -14,8 +14,8 @@ import java.util.Scanner;
 public class Instance {
 	private int vehiclesNr;
 	private int customersNr;
-	private int depotsNr;
-	private int daysNr = 1;;
+	private int depotsNr = 1;
+	private int daysNr = 1;
 	private ArrayList<Customer> customers = new ArrayList<>(); // vector of
 																// customers;
 	private Depot depot;
@@ -26,16 +26,15 @@ public class Instance {
 	private Random random = new Random();
 	private Parameters parameters;
 
-	double maxX = Double.NEGATIVE_INFINITY;
-	double maxY = Double.NEGATIVE_INFINITY;
-	double minX = Double.POSITIVE_INFINITY;
-	double minY = Double.POSITIVE_INFINITY;
-
 	public Instance(Parameters parameters) {
 		this.setParameters(parameters);
-		// set the random seet if passed as parameter
+		// set the random seed if passed as parameter
 		if (parameters.getRandomSeed() != -1)
 			random.setSeed(parameters.getRandomSeed());
+	}
+
+	private void setParameters(Parameters parameters) {
+		this.parameters = parameters;
 	}
 
 	/**
@@ -93,16 +92,8 @@ public class Instance {
 			depot.setStartTw(in.nextInt());
 			depot.setEndTw(in.nextInt());
 			in.nextDouble();
-			// this data is used for DrawPanel
-			maxX = depot.getXCoordinate() > maxX ? depot.getXCoordinate()
-					: maxX;
-			maxY = depot.getYCoordinate() > maxY ? depot.getYCoordinate()
-					: maxY;
-			minX = depot.getXCoordinate() < minX ? depot.getXCoordinate()
-					: minX;
-			minY = depot.getYCoordinate() < minY ? depot.getYCoordinate()
-					: minY;
-			depots.add(depot);
+			
+			this.depot = depot;
 
 			// read customers data
 			customersNr = 0;
@@ -114,16 +105,6 @@ public class Instance {
 				customer.setStartTw(in.nextInt());
 				customer.setEndTw(in.nextInt());
 				customer.setServiceDuration(in.nextDouble());
-
-				// this data is used for DrawPanel
-				maxX = customer.getXCoordinate() > maxX ? customer
-						.getXCoordinate() : maxX;
-				maxY = customer.getYCoordinate() > maxY ? customer
-						.getYCoordinate() : maxY;
-				minX = customer.getXCoordinate() < minX ? customer
-						.getXCoordinate() : minX;
-				minY = customer.getYCoordinate() < minY ? customer
-						.getYCoordinate() : minY;
 
 				// add customer to customers list
 				customers.add(customer);
@@ -168,42 +149,28 @@ public class Instance {
 		// TODO --> check if it's correct
 		
 		distances = new double[customersNr + depotsNr][customersNr + depotsNr];
-		for (int i = 0; i < customersNr + depotsNr - 1; ++i)
+		
+		for (int i = 0; i < customersNr + depotsNr - 1; ++i) {
 			for (int j = i + 1; j < customersNr + depotsNr; ++j) {
-				// case both customers
+					// distance between two customers
 				if (i < customersNr && j < customersNr) {
 					distances[i][j] = Math.sqrt(Math.pow(customers.get(i)
 							.getXCoordinate()
 							- customers.get(j).getXCoordinate(), 2)
 							+ Math.pow(customers.get(i).getYCoordinate()
 									- customers.get(j).getYCoordinate(), 2));
-					distances[j][i] = distances[i][j];
-
-					// case customer and depot
-				} else if (i < customersNr && j >= customersNr) {
-					int d = j - customersNr; // depot number in the instance
-												// list
+				}	// distance of a customer from the depot 
+				else if (i < customersNr && j >= customersNr) {
 					distances[i][j] = Math.sqrt(Math.pow(customers.get(i)
-							.getXCoordinate() - depots.get(d).getXCoordinate(),
+							.getXCoordinate() - depot.getXCoordinate(),
 							2)
 							+ Math.pow(customers.get(i).getYCoordinate()
-									- depots.get(d).getYCoordinate(), 2));
-					distances[j][i] = distances[i][j];
-
-					// case both depots
-				} else if (i >= customersNr && j >= customersNr) {
-					int d1 = i - customersNr; // first depot number in the
-												// instance list
-					int d2 = j - customersNr; // second depot number in the
-												// instance list
-					distances[i][j] = Math.sqrt(Math.pow(
-							depots.get(d1).getXCoordinate()
-									- depots.get(d2).getXCoordinate(), 2)
-							+ Math.pow(depots.get(d1).getYCoordinate()
-									- depots.get(d2).getYCoordinate(), 2));
-					distances[j][i] = distances[i][j];
+									- depot.getYCoordinate(), 2));	
 				}
+				
+				distances[j][i] = distances[i][j];
 			}
+		}
 	}
 
 }

@@ -38,7 +38,10 @@ public class VRPTW {
 			initialSol 		= new MySolution(instance);
 			objFunc 		= new MyObjectiveFunction(instance);
 	        moveManager 	= new MyMoveManager(instance);
-	        moveManager.setMovesType(parameters.getMovesType());
+	        
+	        // TODO ---> decide on what to do with Move Types
+	        
+//	        moveManager.setMovesType(parameters.getMovesType());
 
 			// Create Tabu Search object
 			
