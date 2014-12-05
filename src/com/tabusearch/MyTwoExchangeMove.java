@@ -10,7 +10,7 @@ import org.coinor.opents.Solution;
  * @author Guido Pio
  *
  */
-public class MyMove implements Move {
+public class MyTwoExchangeMove implements Move {
 
 	/* (non-Javadoc)
 	 * @see org.coinor.opents.Move#operateOn(org.coinor.opents.Solution)
