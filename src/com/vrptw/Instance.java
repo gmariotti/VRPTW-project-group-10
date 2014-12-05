@@ -61,7 +61,6 @@ public class Instance {
 
 			Scanner in = new Scanner(new FileReader(parameters.getCurrDir()
 					+ "/input/" + filename));
-			depotsNr = 1;
 
 			// skip unusefull lines
 			in.nextLine(); // skip filename
@@ -146,7 +145,6 @@ public class Instance {
 	 * Calculate the symmetric euclidean matrix of costs
 	 */
 	public void calculateDistances() {
-		// TODO --> check if it's correct
 		
 		distances = new double[customersNr + depotsNr][customersNr + depotsNr];
 		
