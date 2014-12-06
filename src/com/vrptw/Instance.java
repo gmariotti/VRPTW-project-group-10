@@ -16,13 +16,13 @@ public class Instance {
 	private int customersNr;
 	private int depotsNr = 1;
 	private int daysNr = 1;
-	private ArrayList<Customer> customers = new ArrayList<>(); // vector of
-																// customers;
+	private ArrayList<Customer> customers = new ArrayList<>(); // vector of customers;
 	private Depot depot;
-	private double[][] durations;
-	private double[][] capacities;
+	private double[] durations;
+	private double[] capacities;
 	private double[][] distances;
-	private Route[][] routes;
+	@SuppressWarnings("unused")
+	private Route[] routes;
 	private Random random = new Random();
 	private Parameters parameters;
 
@@ -38,14 +38,10 @@ public class Instance {
 	}
 
 	/**
-	 * Returns the time necessary to travel from node 1 to node 2
-	 * 
-	 * @param node1
-	 * @param node2
-	 * @return
+	 * 	@return The time necessary to travel from node 1 to node 2
 	 */
-	public double getTravelTime(int v1, int v2) {
-		return this.distances[v1][v2];
+	public double getTravelTime(int node1, int node2) {
+		return this.distances[node1][node2];
 	}
 
 	/**
@@ -57,12 +53,8 @@ public class Instance {
 	 */
 	public void populateFromHombergFile(String filename) {
 		try {
-			// TODO --> check if it's correct
+			Scanner in = new Scanner(new FileReader(parameters.getCurrDir() + "/input/" + filename));
 
-			Scanner in = new Scanner(new FileReader(parameters.getCurrDir()
-					+ "/input/" + filename));
-
-			// skip unusefull lines
 			in.nextLine(); // skip filename
 			in.nextLine(); // skip empty line
 			in.nextLine(); // skip vehicle line
@@ -70,12 +62,11 @@ public class Instance {
 			vehiclesNr = in.nextInt();
 
 			// read D and Q
-			durations = new double[depotsNr][daysNr];
-			capacities = new double[depotsNr][daysNr];
-			durations[0][0] = Double.MAX_VALUE;
-			capacities[0][0] = in.nextInt();
+			durations = new double[daysNr];
+			capacities = new double[daysNr];
+			durations[0] = Double.MAX_VALUE;
+			capacities[0] = in.nextInt();
 
-			// skip unusefull lines
 			in.nextLine();
 			in.nextLine();
 			in.nextLine();
@@ -113,25 +104,17 @@ public class Instance {
 
 			depot.setNumber(customersNr);
 
-			/*
-			 * if(parameters.getTabuTenure() == -1)
-			 * parameters.setTabuTenure((int)(Math.sqrt(getCustomersNr())));
-			 */
+			
+			if(parameters.getTabuTenure() == -1) {
+				parameters.setTabuTenure((int)(Math.sqrt(customersNr)));
+			}
 
 			calculateDistances();
-			assignCustomersToDepots();
 		} catch (FileNotFoundException e) {
 			// File not found
 			System.out.println("File not found!");
 			System.exit(-1);
 		}
-	}
-
-	/**
-	 * Assign to each customer the closed depot based on distances
-	 */
-	public void assignCustomersToDepots() {
-		// TODO
 	}
 
 	/**
@@ -152,23 +135,63 @@ public class Instance {
 			for (int j = i + 1; j < customersNr + depotsNr; ++j) {
 					// distance between two customers
 				if (i < customersNr && j < customersNr) {
-					distances[i][j] = Math.sqrt(Math.pow(customers.get(i)
-							.getXCoordinate()
-							- customers.get(j).getXCoordinate(), 2)
-							+ Math.pow(customers.get(i).getYCoordinate()
-									- customers.get(j).getYCoordinate(), 2));
+					distances[i][j] = Math.sqrt(Math.pow(customers.get(i).getXCoordinate() - customers.get(j).getXCoordinate(), 2)
+									+ Math.pow(customers.get(i).getYCoordinate() - customers.get(j).getYCoordinate(), 2));
 				}	// distance of a customer from the depot 
 				else if (i < customersNr && j >= customersNr) {
-					distances[i][j] = Math.sqrt(Math.pow(customers.get(i)
-							.getXCoordinate() - depot.getXCoordinate(),
-							2)
-							+ Math.pow(customers.get(i).getYCoordinate()
-									- depot.getYCoordinate(), 2));	
+					distances[i][j] = Math.sqrt(Math.pow(customers.get(i).getXCoordinate() - depot.getXCoordinate(), 2)
+							        + Math.pow(customers.get(i).getYCoordinate() - depot.getYCoordinate(), 2));	
 				}
 				
+				distances[i][j] = Math.floor(distances[i][j] * 10) / 10;
 				distances[j][i] = distances[i][j];
 			}
 		}
 	}
 
+	public int getVehiclesNr() {
+		return vehiclesNr;
+	}
+
+	public int getCustomersNr() {
+		return customersNr;
+	}
+
+	public int getDepotsNr() {
+		return depotsNr;
+	}
+
+	public int getDaysNr() {
+		return daysNr;
+	}
+
+	public void setDaysNr(int daysNr) {
+		this.daysNr = daysNr;
+	}
+
+	public ArrayList<Customer> getCustomers() {
+		return customers;
+	}
+
+	public Depot getDepot() {
+		return depot;
+	}
+
+	public double[][] getDistances() {
+		return distances;
+	}
+
+	public Random getRandom() {
+		return random;
+	}
+
+	public void setRandom(Random random) {
+		this.random = random;
+	}
+
+	public Parameters getParameters() {
+		return parameters;
+	}
 }
+
+

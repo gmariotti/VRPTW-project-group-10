@@ -3,6 +3,7 @@ package com.vrptw;
 import com.tabusearch.MovesType;
 
 public class Parameters {
+	@SuppressWarnings("unused")
 	private MovesType movesType;
 	private String inputFileName;
 	private String outputFileName;
@@ -28,7 +29,6 @@ public class Parameters {
 	
 	public void updateParameters(String[] args) throws Exception
 	{
-		// TODO
 		if(args.length % 2 == 0){
 			for(int i = 0; i < args.length; i += 2){
 				switch (args[i]) {
@@ -90,9 +90,63 @@ public class Parameters {
 		return inputFileName;
 	}
 
-	public Object getMovesType() {
-		// TODO Auto-generated method stub
-		return null;
+	public String getOutputFileName() {
+		return outputFileName;
 	}
-	
+
+	public void setOutputFileName(String outputFileName) {
+		this.outputFileName = outputFileName;
+	}
+
+	public double getPrecision() {
+		return precision;
+	}
+
+	public void setPrecision(double precision) {
+		this.precision = precision;
+	}
+
+	public int getIterations() {
+		return iterations;
+	}
+
+	public void setIterations(int iterations) {
+		this.iterations = iterations;
+	}
+
+	public int getStartClient() {
+		return startClient;
+	}
+
+	public void setStartClient(int startClient) {
+		this.startClient = startClient;
+	}
+
+	public int getTabuTenure() {
+		return tabuTenure;
+	}
+
+	public void setTabuTenure(int tabuTenure) {
+		this.tabuTenure = tabuTenure;
+	}
+
+	public boolean isVariableTenure() {
+		return variableTenure;
+	}
+
+	public void setVariableTenure(boolean variableTenure) {
+		this.variableTenure = variableTenure;
+	}
+
+	public void setInputFileName(String inputFileName) {
+		this.inputFileName = inputFileName;
+	}
+
+	public void setRandomSeed(int randomSeed) {
+		this.randomSeed = randomSeed;
+	}
+
+	public void setCurrDir(String currDir) {
+		this.currDir = currDir;
+	}
 }
