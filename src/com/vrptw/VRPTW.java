@@ -21,7 +21,7 @@ public class VRPTW {
 	 */
 	public static void main(String[] args) {
 		MySearchProgram searchProgram;
-		MySolution initialSol;
+		MySolution initialSol = new MySolution();
 		MyObjectiveFunction objFunc;
 		MyMoveManager moveManager;
 		TabuList tabuList;
@@ -35,9 +35,9 @@ public class VRPTW {
 			parameters.updateParameters(args);
 			instance = new Instance(parameters);
 			instance.populateFromHombergFile(parameters.getInputFileName());
-			initialSol 		= new MySolution(instance);
-			objFunc 		= new MyObjectiveFunction(instance);
-	        moveManager 	= new MyMoveManager(instance);
+			initialSol.generateInitialSolution(instance);	// modified here (Emmanuel)
+			objFunc = new MyObjectiveFunction(instance);
+	        moveManager = new MyMoveManager(instance);
 	        moveManager.setMovesType(parameters.getMovesType());
 
 			// Create Tabu Search object

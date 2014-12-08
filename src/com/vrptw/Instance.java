@@ -3,6 +3,7 @@
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -204,6 +205,27 @@ public class Instance {
 					distances[j][i] = distances[i][j];
 				}
 			}
+	}
+	
+	/*
+	 * These getters were added because I needed them in MySolution
+	 * (Emmanuel)
+	 */
+	
+	public int getVehicleNr() {
+		return this.vehiclesNr;
+	}
+	
+	public List<Customer> getCustomers() {
+		return this.customers;
+	}
+	
+	public double getVehicleCapacity() {
+		return this.capacities[0][0];
+	}
+	
+	public double[][] getDistances() {
+		return this.distances;
 	}
 
 }
