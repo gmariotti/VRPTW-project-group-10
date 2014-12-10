@@ -33,6 +33,13 @@ public class Route {
 	}
 
 	/**
+	 * This method calculate the cost of the Route based on its customers
+	 */
+	public void evaluate() {
+		// TODO
+	}
+	
+	/**
 	 * @return the index
 	 */
 	public int getIndex() {

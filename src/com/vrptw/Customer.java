@@ -1,273 +1,290 @@
 ﻿package com.vrptw;
 
 /**
- * Customer class stores information about one customer which implements the
- * Vertex interface. Stores the number of the customer, coordinates, service
- * duration, capacity,
+ * Customer class stores information about one customer which implements the Vertex interface.
+ * Stores the number of the customer, coordinates, service duration, capacity,
  */
 public class Customer {
-    private int number;
-    private double xCoordinate;
-    private double yCoordinate;
-    private double serviceDuration; // duration that takes to dispatch the
-				    // delivery
-    private double load; // capacity of the pack that is expecting
-    private int startTw; // beginning of time window (earliest time for start of
-			 // service),if any
-    private int endTw; // end of time window (latest time for start of service),
-		       // if any
-    private int patternUsed; // the combination of
-    private double arriveTime; // time at which the car arrives to the customer
-    private double waitingTime; // time to wait until arriveTime equal start
-				// time window
-    private double twViol; // value of time window violation, 0 if none
+	private int		number;				// the number of the customer in the input file
+	private double	xCoordinate;
+	private double	yCoordinate;
+	private double	serviceDuration;		// time to dispatch the delivery
+	private double	load;					// capacity of the pack that is expecting
+	private int		startTw;				// beginning of time window
+	private int		endTw;					// end of time window
+	private int		patternUsed;			// the combination of
+	private double	arriveTime;			// time at which the car arrives to the customer
+	private double	waitingTime;			// time to wait until arriveTime equal start
+	// time window
+	private double	twViol;				// value of time window violation, 0 if none
 
-    /**
-     * Not sure if we need them
-     */
-    private int frequency; // frequency of visit
-    private int combinationsVisitsNr; // number of possible visits combinations
-    private int[][] combinationsList; // combinationslist[i][j] where i = visit
-				      // combinations nr and j = frequency
+	/**
+	 * Not sure if we need them
+	 */
+	private int		frequency;				// frequency of visit
+	private int		combinationsVisitsNr;	// number of possible visits combinations
+	private int[][]	combinationsList;		// combinationslist[i][j] where i = visit
 
-    public Customer() {
-	xCoordinate = 0;
-	yCoordinate = 0;
-	serviceDuration = 0;
-	load = 0;
-	startTw = 0;
-	endTw = 0;
-	arriveTime = 0;
-	waitingTime = 0;
-	twViol = 0;
+	// combinations nr and j = frequency
 
-	frequency = 0;
-	combinationsVisitsNr = 0;
+	public Customer() {
+		xCoordinate = 0;
+		yCoordinate = 0;
+		serviceDuration = 0;
+		load = 0;
+		startTw = 0;
+		endTw = 0;
+		arriveTime = 0;
+		waitingTime = 0;
+		twViol = 0;
 
-    }
+		frequency = 0;
+		combinationsVisitsNr = 0;
 
-    public Customer(Customer customer) {
-	this.number = customer.number;
-	this.xCoordinate = customer.xCoordinate;
-	this.yCoordinate = customer.yCoordinate;
-	this.serviceDuration = customer.serviceDuration;
-	this.load = customer.load;
-	this.startTw = customer.startTw;
-	this.endTw = customer.endTw;
-	this.patternUsed = customer.patternUsed;
-	this.arriveTime = new Double(customer.arriveTime);
-	this.waitingTime = new Double(customer.waitingTime);
-	this.twViol = new Double(customer.twViol);
+	}
 
-	this.frequency = customer.frequency;
-	this.combinationsVisitsNr = customer.combinationsVisitsNr;
-	this.combinationsList = customer.combinationsList;
-    }
+	public Customer(Customer customer) {
+		this.number = customer.number;
+		this.xCoordinate = customer.xCoordinate;
+		this.yCoordinate = customer.yCoordinate;
+		this.serviceDuration = customer.serviceDuration;
+		this.load = customer.load;
+		this.startTw = customer.startTw;
+		this.endTw = customer.endTw;
+		this.patternUsed = customer.patternUsed;
+		this.arriveTime = new Double(customer.arriveTime);
+		this.waitingTime = new Double(customer.waitingTime);
+		this.twViol = new Double(customer.twViol);
 
-    /**
-     * This return a string with formated customer data
-     * 
-     * @return
-     */
-    public String print() {
-	// TODO --> probably can be substituted with toString()
-	return null;
-    }
+		this.frequency = customer.frequency;
+		this.combinationsVisitsNr = customer.combinationsVisitsNr;
+		this.combinationsList = customer.combinationsList;
+	}
 
-    /**
-     * @return the number
-     */
-    public int getNumber() {
-        return number;
-    }
+	/**
+	 * This return a string with formated customer data
+	 * 
+	 * @return
+	 */
+	public String print() {
+		// TODO --> probably can be substituted with toString()
+		return null;
+	}
 
-    /**
-     * @param number the number to set
-     */
-    public void setNumber(int number) {
-        this.number = number;
-    }
+	public double calculateDistance(Customer other) {
+		double xDiff = this.getXCoordinate() - other.getXCoordinate();
+		double yDiff = this.getYCoordinate() - other.getYCoordinate();
+		return Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
+	}
 
-    /**
-     * @return the xCoordinate
-     */
-    public double getXCoordinate() {
-        return xCoordinate;
-    }
+	/**
+	 * @return the number
+	 */
+	public int getNumber() {
+		return number;
+	}
 
-    /**
-     * @param xCoordinate the xCoordinate to set
-     */
-    public void setXCoordinate(double xCoordinate) {
-        this.xCoordinate = xCoordinate;
-    }
+	/**
+	 * @param number
+	 *            the number to set
+	 */
+	public void setNumber(int number) {
+		this.number = number;
+	}
 
-    /**
-     * @return the yCoordinate
-     */
-    public double getYCoordinate() {
-        return yCoordinate;
-    }
+	/**
+	 * @return the xCoordinate
+	 */
+	public double getXCoordinate() {
+		return xCoordinate;
+	}
 
-    /**
-     * @param yCoordinate the yCoordinate to set
-     */
-    public void setYCoordinate(double yCoordinate) {
-        this.yCoordinate = yCoordinate;
-    }
+	/**
+	 * @param xCoordinate
+	 *            the xCoordinate to set
+	 */
+	public void setXCoordinate(double xCoordinate) {
+		this.xCoordinate = xCoordinate;
+	}
 
-    /**
-     * @return the serviceDuration
-     */
-    public double getServiceDuration() {
-        return serviceDuration;
-    }
+	/**
+	 * @return the yCoordinate
+	 */
+	public double getYCoordinate() {
+		return yCoordinate;
+	}
 
-    /**
-     * @param serviceDuration the serviceDuration to set
-     */
-    public void setServiceDuration(double serviceDuration) {
-        this.serviceDuration = serviceDuration;
-    }
+	/**
+	 * @param yCoordinate
+	 *            the yCoordinate to set
+	 */
+	public void setYCoordinate(double yCoordinate) {
+		this.yCoordinate = yCoordinate;
+	}
 
-    /**
-     * @return the load
-     */
-    public double getLoad() {
-        return load;
-    }
+	/**
+	 * @return the serviceDuration
+	 */
+	public double getServiceDuration() {
+		return serviceDuration;
+	}
 
-    /**
-     * @param load the load to set
-     */
-    public void setLoad(double load) {
-        this.load = load;
-    }
+	/**
+	 * @param serviceDuration
+	 *            the serviceDuration to set
+	 */
+	public void setServiceDuration(double serviceDuration) {
+		this.serviceDuration = serviceDuration;
+	}
 
-    /**
-     * @return the startTw
-     */
-    public int getStartTw() {
-        return startTw;
-    }
+	/**
+	 * @return the load
+	 */
+	public double getLoad() {
+		return load;
+	}
 
-    /**
-     * @param startTw the startTw to set
-     */
-    public void setStartTw(int startTw) {
-        this.startTw = startTw;
-    }
+	/**
+	 * @param load
+	 *            the load to set
+	 */
+	public void setLoad(double load) {
+		this.load = load;
+	}
 
-    /**
-     * @return the endTw
-     */
-    public int getEndTw() {
-        return endTw;
-    }
+	/**
+	 * @return the startTw
+	 */
+	public int getStartTw() {
+		return startTw;
+	}
 
-    /**
-     * @param endTw the endTw to set
-     */
-    public void setEndTw(int endTw) {
-        this.endTw = endTw;
-    }
+	/**
+	 * @param startTw
+	 *            the startTw to set
+	 */
+	public void setStartTw(int startTw) {
+		this.startTw = startTw;
+	}
 
-    /**
-     * @return the patternUsed
-     */
-    public int getPatternUsed() {
-        return patternUsed;
-    }
+	/**
+	 * @return the endTw
+	 */
+	public int getEndTw() {
+		return endTw;
+	}
 
-    /**
-     * @param patternUsed the patternUsed to set
-     */
-    public void setPatternUsed(int patternUsed) {
-        this.patternUsed = patternUsed;
-    }
+	/**
+	 * @param endTw
+	 *            the endTw to set
+	 */
+	public void setEndTw(int endTw) {
+		this.endTw = endTw;
+	}
 
-    /**
-     * @return the arriveTime
-     */
-    public double getArriveTime() {
-        return arriveTime;
-    }
+	/**
+	 * @return the patternUsed
+	 */
+	public int getPatternUsed() {
+		return patternUsed;
+	}
 
-    /**
-     * @param arriveTime the arriveTime to set
-     */
-    public void setArriveTime(double arriveTime) {
-        this.arriveTime = arriveTime;
-    }
+	/**
+	 * @param patternUsed
+	 *            the patternUsed to set
+	 */
+	public void setPatternUsed(int patternUsed) {
+		this.patternUsed = patternUsed;
+	}
 
-    /**
-     * @return the waitingTime
-     */
-    public double getWaitingTime() {
-        return waitingTime;
-    }
+	/**
+	 * @return the arriveTime
+	 */
+	public double getArriveTime() {
+		return arriveTime;
+	}
 
-    /**
-     * @param waitingTime the waitingTime to set
-     */
-    public void setWaitingTime(double waitingTime) {
-        this.waitingTime = waitingTime;
-    }
+	/**
+	 * @param arriveTime
+	 *            the arriveTime to set
+	 */
+	public void setArriveTime(double arriveTime) {
+		this.arriveTime = arriveTime;
+	}
 
-    /**
-     * @return the twViol
-     */
-    public double getTwViol() {
-        return twViol;
-    }
+	/**
+	 * @return the waitingTime
+	 */
+	public double getWaitingTime() {
+		return waitingTime;
+	}
 
-    /**
-     * @param twViol the twViol to set
-     */
-    public void setTwViol(double twViol) {
-        this.twViol = twViol;
-    }
+	/**
+	 * @param waitingTime
+	 *            the waitingTime to set
+	 */
+	public void setWaitingTime(double waitingTime) {
+		this.waitingTime = waitingTime;
+	}
 
-    /**
-     * @return the frequency
-     */
-    public int getFrequency() {
-        return frequency;
-    }
+	/**
+	 * @return the twViol
+	 */
+	public double getTwViol() {
+		return twViol;
+	}
 
-    /**
-     * @param frequency the frequency to set
-     */
-    public void setFrequency(int frequency) {
-        this.frequency = frequency;
-    }
+	/**
+	 * @param twViol
+	 *            the twViol to set
+	 */
+	public void setTwViol(double twViol) {
+		this.twViol = twViol;
+	}
 
-    /**
-     * @return the combinationsVisitsNr
-     */
-    public int getCombinationsVisitsNr() {
-        return combinationsVisitsNr;
-    }
+	/**
+	 * @return the frequency
+	 */
+	public int getFrequency() {
+		return frequency;
+	}
 
-    /**
-     * @param combinationsVisitsNr the combinationsVisitsNr to set
-     */
-    public void setCombinationsVisitsNr(int combinationsVisitsNr) {
-        this.combinationsVisitsNr = combinationsVisitsNr;
-    }
+	/**
+	 * @param frequency
+	 *            the frequency to set
+	 */
+	public void setFrequency(int frequency) {
+		this.frequency = frequency;
+	}
 
-    /**
-     * @return the combinationsList
-     */
-    public int[][] getCombinationsList() {
-        return combinationsList;
-    }
+	/**
+	 * @return the combinationsVisitsNr
+	 */
+	public int getCombinationsVisitsNr() {
+		return combinationsVisitsNr;
+	}
 
-    /**
-     * @param combinationsList the combinationsList to set
-     */
-    public void setCombinationsList(int[][] combinationsList) {
-        this.combinationsList = combinationsList;
-    }
+	/**
+	 * @param combinationsVisitsNr
+	 *            the combinationsVisitsNr to set
+	 */
+	public void setCombinationsVisitsNr(int combinationsVisitsNr) {
+		this.combinationsVisitsNr = combinationsVisitsNr;
+	}
+
+	/**
+	 * @return the combinationsList
+	 */
+	public int[][] getCombinationsList() {
+		return combinationsList;
+	}
+
+	/**
+	 * @param combinationsList
+	 *            the combinationsList to set
+	 */
+	public void setCombinationsList(int[][] combinationsList) {
+		this.combinationsList = combinationsList;
+	}
 
 }

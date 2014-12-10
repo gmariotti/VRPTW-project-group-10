@@ -3,8 +3,7 @@
  */
 package com.tabusearch;
 
-import org.coinor.opents.TabuSearchEvent;
-import org.coinor.opents.TabuSearchListener;
+import org.coinor.opents.*;
 
 /**
  * @author Guido Pio
@@ -12,6 +11,15 @@ import org.coinor.opents.TabuSearchListener;
  */
 public class MySearchProgram implements TabuSearchListener {
 
+	public TabuSearch tabuSearch;
+	
+	/**
+	 * Considered other parameters that can be used
+	 */
+	public MySearchProgram() {
+		tabuSearch = new SingleThreadedTabuSearch(); // parameters as to be set
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.coinor.opents.TabuSearchListener#tabuSearchStarted(org.coinor.opents.TabuSearchEvent)
 	 */

@@ -13,13 +13,12 @@ import org.coinor.opents.Solution;
 import com.vrptw.*;
 
 /**
- * @author Guido Pio
- * 
+ * Implementation of the interface MoveManager for managing all moves for the Tabu Search
  */
 @SuppressWarnings("serial")
 public class MyMoveManager implements MoveManager {
-	private static Instance instance;
-	private MovesType movesType;
+	private static Instance	instance;
+	private MovesType		movesType;
 
 	public MyMoveManager(Instance instance) {
 		MyMoveManager.setInstance(instance);
@@ -37,8 +36,6 @@ public class MyMoveManager implements MoveManager {
 			return getSwapMoves(mySol);
 		case TWO_EXCHANGE:
 			return getTwoExchangeMoves(mySol);
-		case THREE_EXCHANGE:
-			return getThreeExchangeMoves(mySol);
 		default:
 			return null;
 		}
@@ -48,6 +45,10 @@ public class MyMoveManager implements MoveManager {
 		Route[] routes = solution.getRoutes();
 		List<Move> moves = new ArrayList<Move>();
 
+		/**
+		 * When we generate the Move[], we should apply the Granular criterion, in this way we can
+		 * generate a limited list of moves to be evaluate each time
+		 */
 		// iterates routes
 		for (int i = 0; i < routes.length; i++) {
 			// iterate for each customer in the route
@@ -57,8 +58,7 @@ public class MyMoveManager implements MoveManager {
 				for (int k = 0; k < routes.length; k++) {
 					if (i != k) {
 						Customer customer = customers.get(j);
-						Move move = new MySwapMove(getInstance(), customer, i,
-								j, k);
+						Move move = new MySwapMove(getInstance(), customer, i, j, k);
 						moves.add(move);
 					}
 				}
@@ -82,12 +82,17 @@ public class MyMoveManager implements MoveManager {
 			// iterate for each customer in the route
 			List<Customer> customers = routes[i].getCustomers();
 			for (int j = 0; j < customers.size(); j++) {
-				// generate moves to all others routes {
-				for (int k = 0; k < routes.length; k++) {
-					if (i != k) {
-						Customer customer = customers.get(j);
-						Move move = new MyTwoExchangeMove(
-								MyMoveManager.getInstance(), customer, i, k);
+				Customer customer = customers.get(j);
+				// generate moves to all other routes
+				// avoiding reconsider previous route
+				for (int k = i + 1; k < routes.length; k++) {
+					// scan all customers of route k
+					List<Customer> otherCustomers = routes[k].getCustomers();
+					for (int l = 0; l < otherCustomers.size(); l++) {
+						// if Granular Attribute and distance with customer.calculateDistance(otherCustomer)
+						Customer otherCustomer = otherCustomers.get(l);
+						Move move = new MyTwoExchangeMove(MyMoveManager.getInstance(), customer,
+								otherCustomer, i, k);
 						moves.add(move);
 					}
 				}
@@ -95,11 +100,6 @@ public class MyMoveManager implements MoveManager {
 		}
 		Move[] temp = moves.toArray(new Move[moves.size()]);
 		return temp;
-	}
-
-	private Move[] getThreeExchangeMoves(Solution solution) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	/**
