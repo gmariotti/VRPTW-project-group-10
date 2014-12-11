@@ -192,6 +192,17 @@ public class Instance {
 	public Parameters getParameters() {
 		return parameters;
 	}
+	
+	/**
+	 * Get the capacity for the supplied day number.
+	 * 
+	 * @param index - This is the day number.
+	 * @return The maximum capacity a vehicle can carry for the
+	 * specified day.
+	 */
+	public double getCapacity(int index){
+		return capacities[index];
+	}
 }
 
 

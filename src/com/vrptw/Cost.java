@@ -56,6 +56,27 @@ public class Cost {
     }
 
     /**
+     * This method allows the addition of two costs and stores the
+     * corresponding values in the calling object. The method consists
+     * in incrementing all costs and violations to the values of
+     * the original object.
+     */
+    
+    public void add(Cost cost)
+    {
+    	this.total += cost.total;
+    	this.travelTime += cost.travelTime;
+    	this.load += cost.load;
+    	this.serviceTime += cost.serviceTime;
+    	this.waitingTime += cost.waitingTime;
+
+    	this.loadViol += cost.loadViol;
+    	this.durationViol += cost.durationViol;
+    	this.twViol += cost.twViol;
+    	this.depotTwViol += cost.depotTwViol;
+    }
+    
+    /**
      * Set the total cost based on alpha, beta, gamma. These parameters
      * determine the importance of the different parameters and can be
      * tuned in a later stage. A bigger value of the parameter results
