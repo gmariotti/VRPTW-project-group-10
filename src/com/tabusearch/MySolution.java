@@ -15,12 +15,7 @@ import com.vrptw.*;
  */
 @SuppressWarnings("serial")
 public class MySolution extends SolutionAdapter {
-<<<<<<< HEAD
 	Route[] routes;
-	
-	public MySolution(Instance instance) {
-		// TODO Auto-generated constructor stub
-=======
 
 	/**
 	 * The 'solution' object is a hash table where:
@@ -45,7 +40,7 @@ public class MySolution extends SolutionAdapter {
 	 * @param instance The instance of the problem we want to solve.
 	 */
 	public void generateInitialSolution(Instance instance) {
-		int maxVehicleNumber = instance.getVehicleNr();
+		int maxVehicleNumber = instance.getVehiclesNr();
 		double maxVehicleCapacity = instance.getVehicleCapacity();
 		List<Customer> customers = instance.getCustomers();
 		double[][] distances = instance.getDistances();
@@ -192,11 +187,6 @@ public class MySolution extends SolutionAdapter {
 		return null;
 	}
 
-	public Route[] getRoutes() {
-		// TODO Auto-generated method stub
-		return null;
->>>>>>> master
-	}
 
 	/**
 	 * @return the routes

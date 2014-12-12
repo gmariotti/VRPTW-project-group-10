@@ -34,10 +34,6 @@ public class Instance {
 			random.setSeed(parameters.getRandomSeed());
 	}
 
-	private void setParameters(Parameters parameters) {
-		this.parameters = parameters;
-	}
-
 	/**
 	 * 	@return The time necessary to travel from node 1 to node 2
 	 */
@@ -150,39 +146,6 @@ public class Instance {
 		}
 	}
 
-	public int getVehiclesNr() {
-		return vehiclesNr;
-	}
-	
-	/*
-	 * These getters were added because I needed them in MySolution
-	 * (Emmanuel)
-	 */
-	
-	public int getVehicleNr() {
-		return this.vehiclesNr;
-	}
-	
-	public List<Customer> getCustomers() {
-		return this.customers;
-	}
-	
-	public double getVehicleCapacity() {
-		return this.capacities[0][0];
-	}
-	
-	public double[][] getDistances() {
-		return this.distances;
-	}
-	
-	public Depot getDepot() {
-		return this.depot;
-	}
-
-	public int getCustomersNr() {
-		return customersNr;
-	}
-
 	/**
 	 * @return the vehiclesNr
 	 */
@@ -261,6 +224,7 @@ public class Instance {
 	public Depot getDepot() {
 		return depot;
 	}
+	
 	/**
 	 * @param depot the depot to set
 	 */
@@ -271,31 +235,35 @@ public class Instance {
 	/**
 	 * @return the durations
 	 */
-	public double[][] getDurations() {
+	public double[] getDurations() {
 		return durations;
 	}
 
 	/**
 	 * @param durations the durations to set
 	 */
-	public void setDurations(double[][] durations) {
+	public void setDurations(double[] durations) {
 		this.durations = durations;
 	}
 
 	/**
 	 * @return the capacities
 	 */
-	public double[][] getCapacities() {
+	public double[] getCapacities() {
 		return capacities;
 	}
 
 	/**
 	 * @param capacities the capacities to set
 	 */
-	public void setCapacities(double[][] capacities) {
+	public void setCapacities(double[] capacities) {
 		this.capacities = capacities;
 	}
 
+	public double getVehicleCapacity() {
+		return this.capacities[0];
+	}
+	
 	/**
 	 * @return the distances
 	 */
@@ -312,14 +280,14 @@ public class Instance {
 	/**
 	 * @return the routes
 	 */
-	public Route[][] getRoutes() {
+	public Route[] getRoutes() {
 		return routes;
 	}
 
 	/**
 	 * @param routes the routes to set
 	 */
-	public void setRoutes(Route[][] routes) {
+	public void setRoutes(Route[] routes) {
 		this.routes = routes;
 	}
 
@@ -350,10 +318,6 @@ public class Instance {
 		this.parameters = parameters;
 	}
 
-	public Parameters getParameters() {
-		return parameters;
-	}
-	
 	/**
 	 * Get the capacity for the supplied day number.
 	 * 

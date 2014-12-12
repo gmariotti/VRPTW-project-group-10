@@ -4,81 +4,66 @@ import com.tabusearch.MovesType;
 
 public class Parameters {
 	@SuppressWarnings("unused")
-	private MovesType movesType;
-	private String inputFileName;
-	private String outputFileName;
-	private double precision;
-	private int iterations;
-	private int startClient;
-	private int randomSeed;
-	private int tabuTenure;
-	private boolean variableTenure;
-	private String currDir;
-	
+	private MovesType	movesType;
+	private String		inputFileName;
+	private String		outputFileName;
+	private double		precision;
+	private int			iterations;
+	private int			startClient;
+	private int			randomSeed;
+	private int			tabuTenure;
+	private boolean		variableTenure;
+	private String		currDir;
+
 	public Parameters() {
-		currDir 			= System.getProperty("user.dir");
-		outputFileName    	= currDir + "/output/solutions.csv";
-//		movesType         	= MovesType.SWAP;
-		precision         	= 1E-2;
-		iterations        	= 1000;
-		startClient       	= -1;
-		tabuTenure        	= -1;
-		randomSeed		  	= -1;
-		variableTenure    	= false;
+		currDir = System.getProperty("user.dir");
+		outputFileName = currDir + "/output/solutions.csv";
+		// movesType = MovesType.SWAP;
+		precision = 1E-2;
+		iterations = 1000;
+		startClient = -1;
+		tabuTenure = -1;
+		randomSeed = -1;
+		variableTenure = false;
 	}
-	
-	public void updateParameters(String[] args) throws Exception
-	{
-		if(args.length % 2 == 0){
-			for(int i = 0; i < args.length; i += 2){
+
+	public void updateParameters(String[] args) throws Exception {
+		if (args.length % 2 == 0) {
+			for (int i = 0; i < args.length; i += 2) {
 				switch (args[i]) {
-//					case "-mT":
-//						movesType = MovesType.SWAP;
-//						break;
-					case "-if":
-						inputFileName = args[i+1];
-						break;
-					case "-of":
-						outputFileName = args[i+1];
-						break;
-					case "-p":
-						precision = Double.parseDouble(args[i+1]);
-						break;
-					case "-it":
-						iterations = Integer.parseInt(args[i+1]);
-						break;
-					case "-sc":
-						startClient = Integer.parseInt(args[i+1]);
-						break;
-					case "-rs":
-						randomSeed = Integer.parseInt(args[i+1]);
-						break;
-					case "-t":
-						tabuTenure = Integer.parseInt(args[i+1]);
-						break;
-					case "-vt":
-						if(args[i+1].equalsIgnoreCase("true")){
-							variableTenure = true;
-						}else if(args[i+1].equalsIgnoreCase("false")){
-							variableTenure = false;
-						}else {
-							System.out.println("Variable tenure argument must be true of false. Set to default false!");
-							throw new Exception();
-						}
-						break;
-					default: {
-						System.out.println("Unknown type of argument: " + args[i]);
-						throw new Exception();
-					}
+				// case "-mT":
+				// movesType = MovesType.SWAP;
+				// break;
+				case "-if":
+					inputFileName = args[i + 1];
 					break;
-				case "-g":
-					if (args[i + 1].equalsIgnoreCase("on")) {
-						setGraphics(true);
-					} else if (args[i + 1].equalsIgnoreCase("off")) {
-						setGraphics(false);
+				case "-of":
+					outputFileName = args[i + 1];
+					break;
+				case "-p":
+					precision = Double.parseDouble(args[i + 1]);
+					break;
+				case "-it":
+					iterations = Integer.parseInt(args[i + 1]);
+					break;
+				case "-sc":
+					startClient = Integer.parseInt(args[i + 1]);
+					break;
+				case "-rs":
+					randomSeed = Integer.parseInt(args[i + 1]);
+					break;
+				case "-t":
+					tabuTenure = Integer.parseInt(args[i + 1]);
+					break;
+				case "-vt":
+					if (args[i + 1].equalsIgnoreCase("true")) {
+						variableTenure = true;
+					} else if (args[i + 1].equalsIgnoreCase("false")) {
+						variableTenure = false;
 					} else {
 						System.out
-								.println("Graphics argument must be on of off. Set to default off!");
+								.println("Variable tenure argument must be true of false. Set to default false!");
+						throw new Exception();
 					}
 					break;
 				default: {
@@ -109,35 +94,16 @@ public class Parameters {
 		this.movesType = movesType;
 	}
 
-
-	public int getRandomSeed() {
-		return randomSeed;
-	}
-
-	public String getCurrDir() {
-		return currDir;
-	}
-
 	public String getInputFileName() {
 		return inputFileName;
 	}
 
 	/**
-	 * @param inputFileName
-	 *            the inputFileName to set
-	 */
-	public void setInputFileName(String inputFileName) {
-		this.inputFileName = inputFileName;
-	}
-
-	/**
 	 * @return the outputFileName
 	 */
-
 	public String getOutputFileName() {
 		return outputFileName;
 	}
-
 
 	/**
 	 * @param outputFileName
@@ -146,7 +112,6 @@ public class Parameters {
 	public void setOutputFileName(String outputFileName) {
 		this.outputFileName = outputFileName;
 	}
-
 
 	/**
 	 * @return the precision
@@ -201,14 +166,6 @@ public class Parameters {
 	}
 
 	/**
-	 * @param randomSeed
-	 *            the randomSeed to set
-	 */
-	public void setRandomSeed(int randomSeed) {
-		this.randomSeed = randomSeed;
-	}
-
-	/**
 	 * @return the tabuTenure
 	 */
 	public int getTabuTenure() {
@@ -259,9 +216,5 @@ public class Parameters {
 
 	public void setRandomSeed(int randomSeed) {
 		this.randomSeed = randomSeed;
-	}
-
-	public void setCurrDir(String currDir) {
-		this.currDir = currDir;
 	}
 }

@@ -95,9 +95,9 @@ public class MyTwoExchangeMove implements Move {
 		
 		// set the new customers list for each route and evaluate the new cost
 		routeFirst.setCustomers(newCustomersFirst);
-		routeFirst.evaluate();
+		// objective function evaluation
 		routeSecond.setCustomers(newCustomersSecond);
-		routeSecond.evaluate();
+		// objective or route
 	}
 
 	/**
