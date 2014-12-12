@@ -227,5 +227,9 @@ public class Instance {
 	public double[][] getDistances() {
 		return this.distances;
 	}
+	
+	public Depot getDepot() {
+		return this.depot;
+	}
 
 }

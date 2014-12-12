@@ -27,7 +27,7 @@ public class MySolution extends SolutionAdapter {
 	 * Default constructor for MySolution Class.
 	 * It does nothing.
 	 * If you want to generate an initial solution, please :
-	 * - first create a Solution by calling this constructor
+	 * - first create a MySolution by calling this constructor
 	 * - then call generateInitialSolution(instance).
 	 */
 	public MySolution() {
@@ -42,6 +42,8 @@ public class MySolution extends SolutionAdapter {
 		int maxVehicleNumber = instance.getVehicleNr();
 		double maxVehicleCapacity = instance.getVehicleCapacity();
 		List<Customer> customers = instance.getCustomers();
+		double[][] distances = instance.getDistances();
+		Depot depot = instance.getDepot();
 		
 		/*
 		 * At the beginning, we generate a solution by :
@@ -68,8 +70,31 @@ public class MySolution extends SolutionAdapter {
 			// set the initial load to 0
 			load = 0;
 			
-			// for each Customer in the Customer list
-			for (Customer customer : customers) {
+			// we calculate the minimum of the distances between depot and customers
+			// so we need an array : distances between the depot and all customers
+			int row = 0;	// depot
+			int column = 0;	// all customers
+			double[] array = new double[distances.length];
+			
+			Boolean full = Boolean.FALSE;
+			while (!full) {
+			
+				// fixed row (customer to consider), variable columns (all the other customers)
+				for (column = 0; column < array.length; column++) {
+					if (column == row) {
+						array[column] = Double.POSITIVE_INFINITY;
+					} else {
+						array[column] = distances[row][column];
+					}
+				}
+				// we calculate the min distance between the considered customer and all others
+				double minDistance[] = minimum(array);
+				
+				// we get the index of the nearest customer
+				int index = (int) minDistance[1];
+				
+				// we select the customer with the minimum distance (by his index)
+				Customer customer = customers.get(index);
 				
 				// If we can add this customer to the vehicle (final load is less than maxCapacity)
 				if ((customer.getLoad() + load) < maxVehicleCapacity) {
@@ -82,9 +107,13 @@ public class MySolution extends SolutionAdapter {
 					customers.remove(customer);
 					
 				} else {	// it means that the vehicle is full
-					break;	// exit from the 'For' loop
+					full = Boolean.TRUE;
 				}
-			}
+				
+				// then we loop, considering the nearest customer from the selected customer
+				row = index;
+				
+			} // end while if vehicle full, otherwise loop
 			
 			// If there are no customers left, we can stop
 			if (customers.isEmpty()) {
@@ -94,6 +123,7 @@ public class MySolution extends SolutionAdapter {
 			// create new Route
 			Route route = new Route();
 			route.setAssignedVehicle(vehicle);
+			route.setCustomers(customersPerVehicle);
 		
 			// Add this vehicle (with its customers) to our solution (hash table)
 			this.solution.put(vehicleNumber, route);
@@ -114,6 +144,27 @@ public class MySolution extends SolutionAdapter {
 		
 	} // end function
 	
+	/**
+	 * This function calculate the minimum of an array.
+	 * @param array
+	 * @return The minimum distance, and the customer associated
+	 */
+	private double[] minimum(double[] array) {
+		double[] result = new double[2];
+		int index = 0;
+		double distance = Double.POSITIVE_INFINITY;
+		
+		for (int i = 0; i < array.length; i++) {
+			if (array[i] < distance) {
+				distance = array[i];
+			}
+		}
+		
+		result[0] = distance;
+		result[1] = index;
+		return result;
+	}
+
 	/**
 	 * This function is used to clone a Solution.
 	 * @param solution The MySolution we want to clone. If null, we consider the current MySolution.
