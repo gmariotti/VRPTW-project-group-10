@@ -34,10 +34,6 @@ public class Instance {
 			random.setSeed(parameters.getRandomSeed());
 	}
 
-	private void setParameters(Parameters parameters) {
-		this.parameters = parameters;
-	}
-
 	/**
 	 * 	@return The time necessary to travel from node 1 to node 2
 	 */
@@ -150,75 +146,178 @@ public class Instance {
 		}
 	}
 
+	/**
+	 * @return the vehiclesNr
+	 */
 	public int getVehiclesNr() {
 		return vehiclesNr;
 	}
-	
-	/*
-	 * These getters were added because I needed them in MySolution
-	 * (Emmanuel)
+
+	/**
+	 * @param vehiclesNr the vehiclesNr to set
 	 */
-	
-	public int getVehicleNr() {
-		return this.vehiclesNr;
-	}
-	
-	public List<Customer> getCustomers() {
-		return this.customers;
-	}
-	
-	public double getVehicleCapacity() {
-		return this.capacities[0][0];
-	}
-	
-	public double[][] getDistances() {
-		return this.distances;
-	}
-	
-	public Depot getDepot() {
-		return this.depot;
+	public void setVehiclesNr(int vehiclesNr) {
+		this.vehiclesNr = vehiclesNr;
 	}
 
+	/**
+	 * @return the customersNr
+	 */
 	public int getCustomersNr() {
 		return customersNr;
 	}
+
+	/**
+	 * @param customersNr the customersNr to set
+	 */
+	public void setCustomersNr(int customersNr) {
+		this.customersNr = customersNr;
+	}
+
+	/**
+	 * @return the depotsNr
+	 */
 
 	public int getDepotsNr() {
 		return depotsNr;
 	}
 
+	/**
+	 * @param depotsNr the depotsNr to set
+	 */
+	public void setDepotsNr(int depotsNr) {
+		this.depotsNr = depotsNr;
+	}
+
+	/**
+	 * @return the daysNr
+	 */
+
 	public int getDaysNr() {
 		return daysNr;
 	}
 
+	/**
+	 * @param daysNr the daysNr to set
+	 */
 	public void setDaysNr(int daysNr) {
 		this.daysNr = daysNr;
 	}
 
+	/**
+	 * @return the customers
+	 */
 	public ArrayList<Customer> getCustomers() {
 		return customers;
 	}
 
+	/**
+	 * @param customers the customers to set
+	 */
+	public void setCustomers(ArrayList<Customer> customers) {
+		this.customers = customers;
+	}
+
+	/**
+	 * @return the depot
+	 */
 	public Depot getDepot() {
 		return depot;
 	}
+	
+	/**
+	 * @param depot the depot to set
+	 */
+	public void setDepot(Depot depot) {
+		this.depot = depot;
+	}
 
+	/**
+	 * @return the durations
+	 */
+	public double[] getDurations() {
+		return durations;
+	}
+
+	/**
+	 * @param durations the durations to set
+	 */
+	public void setDurations(double[] durations) {
+		this.durations = durations;
+	}
+
+	/**
+	 * @return the capacities
+	 */
+	public double[] getCapacities() {
+		return capacities;
+	}
+
+	/**
+	 * @param capacities the capacities to set
+	 */
+	public void setCapacities(double[] capacities) {
+		this.capacities = capacities;
+	}
+
+	public double getVehicleCapacity() {
+		return this.capacities[0];
+	}
+	
+	/**
+	 * @return the distances
+	 */
 	public double[][] getDistances() {
 		return distances;
 	}
+	/**
+	 * @param distances the distances to set
+	 */
+	public void setDistances(double[][] distances) {
+		this.distances = distances;
+	}
 
+	/**
+	 * @return the routes
+	 */
+	public Route[] getRoutes() {
+		return routes;
+	}
+
+	/**
+	 * @param routes the routes to set
+	 */
+	public void setRoutes(Route[] routes) {
+		this.routes = routes;
+	}
+
+	/**
+	 * @return the random
+	 */
 	public Random getRandom() {
 		return random;
 	}
-
+	/**
+	 * @param random the random to set
+	 */
 	public void setRandom(Random random) {
 		this.random = random;
 	}
-
+	/**
+	 * @return the parameters
+	 */
 	public Parameters getParameters() {
 		return parameters;
 	}
-	
+
+	/**
+	 * @param parameters
+	 *            the parameters to set
+	 */
+	public void setParameters(Parameters parameters) {
+		this.parameters = parameters;
+	}
+
 	/**
 	 * Get the capacity for the supplied day number.
 	 * 
