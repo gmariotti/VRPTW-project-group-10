@@ -18,10 +18,10 @@ public class MySolution extends SolutionAdapter {
 
 	/**
 	 * The 'solution' object is a hash table where:
-	 * - Vehicle is the key,
-	 * - List(Customer) is the list of the customers visited by the Vehicle.
+	 * - VehicleNumber is the key,
+	 * - Route is the list of the customers visited by the Vehicle.
 	 */
-	Map<Vehicle, List<Customer>> solution = new ConcurrentHashMap<Vehicle, List<Customer>>();
+	Map<Integer, Route> solution = new ConcurrentHashMap<Integer, Route>();
 	
 	/**
 	 * Default constructor for MySolution Class.
@@ -51,7 +51,7 @@ public class MySolution extends SolutionAdapter {
 		 * We do not care about time window (yet).
 		 */
 		
-		int i = 1;	// First vehicle (i is the variable counting the vehicles)
+		int vehicleNumber = 1;	// First vehicle (i is the variable counting the vehicles)
 		double load = 0;	// First load of a vehicle (need to be less than maxCapacity)
 		
 		Boolean stop = Boolean.FALSE;	// The stopping condition will be true when there are no customers left.
@@ -62,7 +62,8 @@ public class MySolution extends SolutionAdapter {
 		while (!stop) {
 			
 			// Create a new vehicle
-			Vehicle vehicle = new Vehicle(i,0,0);
+			Vehicle vehicle = new Vehicle();
+			vehicle.setVehicleNr(vehicleNumber);
 			
 			// set the initial load to 0
 			load = 0;
@@ -89,19 +90,23 @@ public class MySolution extends SolutionAdapter {
 			if (customers.isEmpty()) {
 				stop = Boolean.TRUE;
 			}
+			
+			// create new Route
+			Route route = new Route();
+			route.setAssignedVehicle(vehicle);
 		
 			// Add this vehicle (with its customers) to our solution (hash table)
-			this.solution.put(vehicle, customersPerVehicle);
+			this.solution.put(vehicleNumber, route);
 			
 			// empty the temporary list of customers
 			for (Customer customer : customersPerVehicle) {
 				customersPerVehicle.remove(customer);
 			}
 			
-			i++;	// increment vehicle number
+			vehicleNumber++;	// increment vehicle number
 			
 			// if we need more vehicles than specified, solution is infeasible
-			if (i >= maxVehicleNumber) {
+			if (vehicleNumber >= maxVehicleNumber) {
 				stop = Boolean.TRUE;
 			}
 			
