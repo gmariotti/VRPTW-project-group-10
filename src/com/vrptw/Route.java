@@ -32,7 +32,10 @@ public class Route {
 		print.append("\n");
 		return print.toString();
 	}
-
+	
+	/**
+	 * @return the index
+	 */
 	public int getIndex() {
 		return index;
 	}

@@ -1,11 +1,11 @@
 ﻿package com.vrptw;
 
 /**
- * Customer class stores information about one customer which implements the
- * Vertex interface. Stores the number of the customer, coordinates, service
- * duration, capacity,
+ * Customer class stores information about one customer which implements the Vertex interface.
+ * Stores the number of the customer, coordinates, service duration, capacity,
  */
 public class Customer {
+
     private int number;
     private double xCoordinate;
     private double yCoordinate;
