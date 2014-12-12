@@ -10,33 +10,27 @@ public class Route {
 	private Depot depot; // depot the route starts from
 	private List<Customer> customers; // list of customers served in the route
 
-	/**
-	 * Constructor of the route
-	 */
 	public Route() {
 		cost = new Cost();
 		customers = new ArrayList<>();
 	}
 
-	/**
-	 * Constructor of the route from a route
-	 * 
-	 * @param route
-	 */
 	public Route(Route route) {
-
 		this.setIndex(route.getIndex());
 		this.setCost(route.getCost());
 		this.setAssignedVehicle(route.getAssignedVehicle());
 		this.setDepot(route.getDepot());
 		this.setCustomers(route.getCustomers());
 	}
-
-	/**
-	 * This method calculate the cost of the Route based on its customers
-	 */
-	public void evaluate() {
-		// TODO
+	
+	public String toString() {
+		StringBuffer print = new StringBuffer();
+		print.append("\n" + "Route[" + index + "]");
+		print.append("\n" + "--------------------------------------------");
+		print.append("\n" + "| Capacity=" + cost.load + " ServiceTime=" + cost.serviceTime + " TravelTime=" + cost.travelTime + " WaitingTime=" + cost.waitingTime +" Totaltime=" + cost.total);
+		print.append("\n" + cost);
+		print.append("\n");
+		return print.toString();
 	}
 	
 	/**
@@ -46,96 +40,72 @@ public class Route {
 		return index;
 	}
 
-	/**
-	 * @param index
-	 *            the index to set
-	 */
 	public void setIndex(int index) {
 		this.index = index;
 	}
 
-	/**
-	 * @return the cost
-	 */
 	public Cost getCost() {
 		return cost;
 	}
 
-	/**
-	 * @param cost
-	 *            the cost to set
-	 */
 	public void setCost(Cost cost) {
 		this.cost = cost;
 	}
 
-	/**
-	 * @return the assignedVehicle
-	 */
 	public Vehicle getAssignedVehicle() {
 		return assignedVehicle;
 	}
 
-	/**
-	 * @param assignedVehicle
-	 *            the assignedVehicle to set
-	 */
 	public void setAssignedVehicle(Vehicle assignedVehicle) {
 		this.assignedVehicle = assignedVehicle;
 	}
 
-	/**
-	 * @return the depot
-	 */
 	public Depot getDepot() {
 		return depot;
 	}
 
-	/**
-	 * @param depot
-	 *            the depot to set
-	 */
 	public void setDepot(Depot depot) {
 		this.depot = depot;
 	}
 
-	/**
-	 * @return the customers
-	 */
 	public List<Customer> getCustomers() {
 		return customers;
 	}
-
+	
 	/**
-	 * Get a customer from the list
-	 * 
-	 * @param index
-	 * @return
+	 * @return Returns the customer in position i of this route
 	 */
 	public Customer getCustomers(int index) {
 		return customers.get(index);
 	}
 
-	/**
-	 * @param customers
-	 *            the customers to set
-	 */
 	public void setCustomers(List<Customer> customers) {
 		this.customers = customers;
 	}
 
 	/**
-	 * Set a customer in a certain position. If index is -1, the customer is
-	 * added at the end of the list
+	 * Set a customer in the specified index.
 	 * 
-	 * @param customer
-	 * @param index
+	 * @param customer - The Customer object to be added.
+	 * @param index - The index of the customer to be changed to the new customer.
 	 */
-	public void setCustomers(Customer customer, int index) {
-		if (index == -1) {
-			this.customers.add(customer);
-		} else {
-			this.customers.set(index, customer);
+	public void setCustomers(Customer customer, int index) {	
+		this.customers.set(index, customer);
+	}
+	
+	/**
+	 * Add a customer in the specified index.
+	 * 
+	 * @param customer - The Customer object to be added.
+	 * @param index - The index in which to add the customer. Setting this value to -1
+	 * 				  adds the element in the end of the list
+	 */
+	public void addCustomer(Customer customer, int index){
+		if(index == -1){
+			customers.add(customer);
+		}
+		else{
+			customers.add(index, customer);
 		}
 	}
 }

@@ -9,7 +9,15 @@ public class Vehicle {
 	private double capacity;
 	private double duration;
 	
-	public Vehicle() {}
+	public Vehicle() {
+		
+	}
+	
+	public Vehicle(int vehicleNr, double capacity, double duration) {
+		this.vehicleNr = vehicleNr;
+		this.capacity = capacity;
+		this.duration = duration;
+	}
 
 	/**
 	 * @return the vehicleNr
@@ -52,6 +60,5 @@ public class Vehicle {
 	public void setDuration(double duration) {
 		this.duration = duration;
 	}
-
 	
 }

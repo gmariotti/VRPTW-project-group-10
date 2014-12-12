@@ -21,7 +21,7 @@ public class VRPTW {
 	 */
 	public static void main(String[] args) {
 		MySearchProgram searchProgram;
-		MySolution initialSol;
+		MySolution initialSol = new MySolution();
 		MyObjectiveFunction objFunc;
 		MyMoveManager moveManager;
 		TabuList tabuList;
@@ -38,6 +38,10 @@ public class VRPTW {
 			initialSol 		= new MySolution(instance);
 			objFunc 		= new MyObjectiveFunction(instance);
 	        moveManager 	= new MyMoveManager(instance);
+
+			initialSol.generateInitialSolution(instance);	// modified here (Emmanuel)
+			objFunc = new MyObjectiveFunction(instance);
+	        moveManager = new MyMoveManager(instance);
 	        moveManager.setMovesType(parameters.getMovesType());
 
 			// Create Tabu Search object
