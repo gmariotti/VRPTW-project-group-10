@@ -18,6 +18,7 @@ import com.vrptw.Route;
  * This class represents a move between two routes in which, choosing a customer from each route,
  * it will be created two new routes based on the customers of the two routes.
  */
+@SuppressWarnings("serial")
 public class MyTwoExchangeMove implements Move {
 
 	private Instance	instance;
