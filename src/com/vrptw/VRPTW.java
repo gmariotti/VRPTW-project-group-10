@@ -35,6 +35,10 @@ public class VRPTW {
 			parameters.updateParameters(args);
 			instance = new Instance(parameters);
 			instance.populateFromHombergFile(parameters.getInputFileName());
+			initialSol 		= new MySolution(instance);
+			objFunc 		= new MyObjectiveFunction(instance);
+	        moveManager 	= new MyMoveManager(instance);
+
 			initialSol.generateInitialSolution(instance);	// modified here (Emmanuel)
 			objFunc = new MyObjectiveFunction(instance);
 	        moveManager = new MyMoveManager(instance);

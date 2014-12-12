@@ -181,4 +181,14 @@ public class MySolution extends SolutionAdapter {
 		
 	}
 
+	public Cost getCost() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Route[] getRoutes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
