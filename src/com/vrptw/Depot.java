@@ -10,11 +10,9 @@ public class Depot {
 	private int number;
 	private double xCoordinate;
 	private double yCoordinate;
-	private int startTw; // beginning of time window (earliest time for start of
-	// service),if any
-	private int endTw; // end of time window (latest time for start of service),
+	private int startTw; 		// beginning of time window (earliest time for start of service), if any
+	private int endTw; 			// end of time window (latest time for start of service), if any
 
-	// if any
 
 	public Depot() {
 		this.startTw = 0;
@@ -25,80 +23,59 @@ public class Depot {
 	 * Return the formated string of the depot
 	 */
 	public String toString() {
-		// TODO
-		return null;
+		String str = "Depot in coordinates (" + xCoordinate + ";" + yCoordinate + ")\n"
+				   + "that opens at " + startTw + " and closes at " + endTw;
+		
+		return str;
 	}
 
-	/**
-	 * @return the number
-	 */
 	public int getNumber() {
 		return number;
 	}
 
-	/**
-	 * @param number
-	 *            the number to set
-	 */
 	public void setNumber(int number) {
 		this.number = number;
 	}
 
-	/**
-	 * @return the xCoordinate
-	 */
 	public double getXCoordinate() {
 		return xCoordinate;
 	}
 
-	/**
-	 * @param xCoordinate
-	 *            the xCoordinate to set
-	 */
 	public void setXCoordinate(double xCoordinate) {
 		this.xCoordinate = xCoordinate;
 	}
 
-	/**
-	 * @return the yCoordinate
-	 */
 	public double getYCoordinate() {
 		return yCoordinate;
 	}
 
-	/**
-	 * @param yCoordinate
-	 *            the yCoordinate to set
-	 */
 	public void setYCoordinate(double yCoordinate) {
 		this.yCoordinate = yCoordinate;
 	}
 
 	/**
-	 * @return the startTw
+	 * @return The opening time of the depot.
 	 */
 	public int getStartTw() {
 		return startTw;
 	}
 
 	/**
-	 * @param startTw
-	 *            the startTw to set
+	 * @param startTw - The opening time of the depot.
 	 */
 	public void setStartTw(int startTw) {
 		this.startTw = startTw;
 	}
 
 	/**
-	 * @return the endTw
+	 * @return The closing time of the depot.
 	 */
 	public int getEndTw() {
 		return endTw;
 	}
 
 	/**
-	 * @param endTw
-	 *            the endTw to set
+	 * @param endTw - The closing time of the depot.
 	 */
 	public void setEndTw(int endTw) {
 		this.endTw = endTw;

@@ -15,6 +15,7 @@ import com.vrptw.*;
  */
 @SuppressWarnings("serial")
 public class MySolution extends SolutionAdapter {
+	Route[] routes;
 
 	/**
 	 * The 'solution' object is a hash table where:
@@ -39,7 +40,7 @@ public class MySolution extends SolutionAdapter {
 	 * @param instance The instance of the problem we want to solve.
 	 */
 	public void generateInitialSolution(Instance instance) {
-		int maxVehicleNumber = instance.getVehicleNr();
+		int maxVehicleNumber = instance.getVehiclesNr();
 		double maxVehicleCapacity = instance.getVehicleCapacity();
 		List<Customer> customers = instance.getCustomers();
 		double[][] distances = instance.getDistances();
@@ -181,4 +182,42 @@ public class MySolution extends SolutionAdapter {
 		
 	}
 
+	public Cost getCost() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	/**
+	 * @return the routes
+	 */
+	public Route[] getRoutes() {
+		return routes;
+	}
+	
+	/**
+	 * 
+	 * @param index the position of the route
+	 * @return the route searched
+	 */
+	public Route getRoutes(int index) {
+		return routes[index];
+	}
+	
+	/**
+	 * @param routes the routes to set
+	 */
+	public void setRoutes(Route[] routes) {
+		this.routes = routes;
+	}
+
+
+	/**
+	 * 
+	 * @param route the route to set
+	 * @param index the position in which as to be set
+	 */
+	public void setRoutes(Route route, int index) {
+		this.routes[index] = route;
+	}
 }
