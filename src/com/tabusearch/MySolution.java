@@ -113,5 +113,21 @@ public class MySolution extends SolutionAdapter {
 		} // end while if no customers remaining, otherwise loop
 		
 	} // end function
+	
+	/**
+	 * This function is used to clone a Solution.
+	 * @param solution The MySolution we want to clone. If null, we consider the current MySolution.
+	 * @return a MySolution object
+	 */
+	public MySolution clone (MySolution solution) {
+		MySolution newSolution = new MySolution();
+		if (solution == null) {
+			newSolution.solution = this.solution;
+		} else {
+			newSolution.solution = solution.solution;
+		}
+		return newSolution;
+		
+	}
 
 }
