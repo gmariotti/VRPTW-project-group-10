@@ -4,7 +4,6 @@
 package com.tabusearch;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.coinor.opents.SolutionAdapter;
 
@@ -12,40 +11,45 @@ import com.vrptw.*;
 
 /**
  * This class is used to represent a Solution.
+ * A solution is a Route object.
  */
 @SuppressWarnings("serial")
 public class MySolution extends SolutionAdapter {
+	
 	Route[] routes;
-
-	/**
-	 * The 'solution' object is a hash table where:
-	 * - VehicleNumber is the key,
-	 * - Route is the list of the customers visited by the Vehicle.
-	 */
-	Map<Integer, Route> solution = new ConcurrentHashMap<Integer, Route>();
+	Instance instance;
+	int maxVehicleNumber = 0;
+	double maxVehicleCapacity = 0;
+	double[][] distances;
+	Depot depot;
+	Cost cost;
 	
 	/**
 	 * Default constructor for MySolution Class.
 	 * It does nothing.
 	 * If you want to generate an initial solution, please :
 	 * - first create a MySolution by calling this constructor
-	 * - then call generateInitialSolution(instance).
+	 * - then call generateInitialSolution().
+	 * @param instance The instance we want to consider to create the solution.
 	 */
-	public MySolution() {
+	public MySolution(Instance instance) {
 		super();
+		this.instance = instance;
+		this.maxVehicleNumber = instance.getVehiclesNr();
+		this.maxVehicleCapacity = instance.getVehicleCapacity();
+		this.distances = instance.getDistances();
+		this.depot = instance.getDepot();
+		this.routes = new Route[this.maxVehicleNumber];
+		this.cost = new Cost();
 	}
 	
 	/**
 	 * This method is used to generate a new initial solution.
-	 * @param instance The instance of the problem we want to solve.
+	 * @param nothing.
 	 */
-	public void generateInitialSolution(Instance instance) {
-		int maxVehicleNumber = instance.getVehiclesNr();
-		double maxVehicleCapacity = instance.getVehicleCapacity();
-		List<Customer> customers = instance.getCustomers();
-		double[][] distances = instance.getDistances();
-		Depot depot = instance.getDepot();
-		
+	public void generateInitialSolution() {
+		List<Customer> customers = this.instance.getCustomers();
+
 		/*
 		 * At the beginning, we generate a solution by :
 		 * - selecting a vehicle
@@ -75,7 +79,7 @@ public class MySolution extends SolutionAdapter {
 			// so we need an array : distances between the depot and all customers
 			int row = 0;	// depot
 			int column = 0;	// all customers
-			double[] array = new double[distances.length];
+			double[] array = new double[this.distances.length];
 			
 			Boolean full = Boolean.FALSE;
 			while (!full) {
@@ -85,7 +89,7 @@ public class MySolution extends SolutionAdapter {
 					if (column == row) {
 						array[column] = Double.POSITIVE_INFINITY;
 					} else {
-						array[column] = distances[row][column];
+						array[column] = this.distances[row][column];
 					}
 				}
 				// we calculate the min distance between the considered customer and all others
@@ -98,7 +102,7 @@ public class MySolution extends SolutionAdapter {
 				Customer customer = customers.get(index);
 				
 				// If we can add this customer to the vehicle (final load is less than maxCapacity)
-				if ((customer.getLoad() + load) < maxVehicleCapacity) {
+				if ((customer.getLoad() + load) < this.maxVehicleCapacity) {
 					
 					// then we add the customer
 					customersPerVehicle.add(customer);
@@ -126,8 +130,8 @@ public class MySolution extends SolutionAdapter {
 			route.setAssignedVehicle(vehicle);
 			route.setCustomers(customersPerVehicle);
 		
-			// Add this vehicle (with its customers) to our solution (hash table)
-			this.solution.put(vehicleNumber, route);
+			// Add this Route to the array of routes
+			this.routes[vehicleNumber] = route;
 			
 			// empty the temporary list of customers
 			for (Customer customer : customersPerVehicle) {
@@ -137,7 +141,7 @@ public class MySolution extends SolutionAdapter {
 			vehicleNumber++;	// increment vehicle number
 			
 			// if we need more vehicles than specified, solution is infeasible
-			if (vehicleNumber >= maxVehicleNumber) {
+			if (vehicleNumber >= this.maxVehicleNumber) {
 				stop = Boolean.TRUE;
 			}
 			
@@ -172,19 +176,18 @@ public class MySolution extends SolutionAdapter {
 	 * @return a MySolution object
 	 */
 	public MySolution clone (MySolution solution) {
-		MySolution newSolution = new MySolution();
+		MySolution newSolution = new MySolution(this.instance);
 		if (solution == null) {
-			newSolution.solution = this.solution;
+			newSolution.routes = this.routes;
 		} else {
-			newSolution.solution = solution.solution;
+			newSolution.routes = solution.routes;
 		}
 		return newSolution;
 		
 	}
 
 	public Cost getCost() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.cost;
 	}
 
 
@@ -197,7 +200,7 @@ public class MySolution extends SolutionAdapter {
 	
 	/**
 	 * 
-	 * @param index the position of the route
+	 * @param index the position of the route (index is also the vehicle number !)
 	 * @return the route searched
 	 */
 	public Route getRoutes(int index) {
