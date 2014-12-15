@@ -102,6 +102,22 @@ public class MyTwoExchangeMove implements Move {
 	}
 
 	/**
+	 * Identify a move for the SimpleTabuList
+	 * @return hash code that identify the move
+	 */
+	public int hashCode() {
+		int firstCustN = firstCustomer.getNumber();
+		int secondCustN = secondCustomer.getNumber();
+		if (firstCustN > secondCustN) {
+			secondCustN *= 10000;
+			return (firstCustN + secondCustN);
+		} else {
+			firstCustN *= 10000;
+			return (firstCustN + secondCustN);
+		}
+	}
+	
+	/**
 	 * @return the instance
 	 */
 	public Instance getInstance() {
