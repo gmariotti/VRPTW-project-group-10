@@ -35,8 +35,8 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		{
 			evaluateFullSolutionCost(solution);
 			
-			return new double[]{Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, solution.getCost().travelTime, 
-					            solution.getCost().loadViol, solution.getCost().durationViol, solution.getCost().twViol};
+			return new double[]{Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, solution.getCost().getTravelTime(), 
+					            solution.getCost().getLoadViol(), solution.getCost().getDurationViol(), solution.getCost().getTwViol()};
 		}
 		
 		
@@ -79,25 +79,25 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		Cost cost = new Cost();
 		double temp;
 		
-		cost.travelTime = instance.getTravelTime(instance.getCustomersNr(), customer.getNumber());
-		cost.load = customer.getLoad();
+		cost.setTravelTime(instance.getTravelTime(instance.getCustomersNr(), customer.getNumber()));
+		cost.setLoad(customer.getLoad());
 		
-		if((temp = cost.load - instance.getCapacity(0)) > 0)
-			cost.loadViol = temp;
+		if((temp = cost.getLoad() - instance.getCapacity(0)) > 0)
+			cost.setLoadViol(temp);
 		
-		customer.setArriveTime(depot.getStartTw() + cost.travelTime);
+		customer.setArriveTime(depot.getStartTw() + cost.getTravelTime());
 		
 		if((temp = customer.getStartTw() - customer.getArriveTime()) > 0) {
 			customer.setWaitingTime(temp);
-			cost.waitingTime += temp;
+			cost.setWaitingTime(cost.getWaitingTime() + temp);
 		}
 		
 		if((temp = customer.getArriveTime() - customer.getEndTw()) > 0) {
 			customer.setTwViol(temp);
-			cost.twViol += temp;
+			cost.setTwViol(cost.getTwViol() + temp);
 		}
 		
-		cost.serviceTime = customer.getServiceDuration();
+		cost.setServiceTime(customer.getServiceDuration());
 		
 		return cost;
 	}
@@ -107,9 +107,9 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 	{
 		Cost cost = new Cost();
 		
-		cost.travelTime = instance.getTravelTime(first.getNumber(), second.getNumber());
-		cost.load = second.getLoad();
-		cost.serviceTime = second.getServiceDuration();
+		cost.setTravelTime(instance.getTravelTime(first.getNumber(), second.getNumber()));
+		cost.setLoad(second.getLoad());
+		cost.setServiceTime(second.getServiceDuration());
 		
 		
 		return null;

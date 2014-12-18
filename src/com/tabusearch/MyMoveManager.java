@@ -37,7 +37,7 @@ public class MyMoveManager implements MoveManager {
 		case TWO_EXCHANGE:
 			return getTwoExchangeMoves(mySol);
 		default:
-			return null;
+			return getTwoExchangeMoves(mySol);
 		}
 	}
 

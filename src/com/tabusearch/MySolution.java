@@ -16,13 +16,14 @@ import com.vrptw.*;
 @SuppressWarnings("serial")
 public class MySolution extends SolutionAdapter {
 	
-	Route[] routes;
-	Instance instance;
-	int maxVehicleNumber = 0;
-	double maxVehicleCapacity = 0;
-	double[][] distances;
-	Depot depot;
-	Cost cost;
+	private Route[] routes;
+	private Instance instance;
+	private int maxVehicleNumber = 0;
+	private double maxVehicleCapacity = 0;
+	private int customersNumber = 0;
+	private double[][] distances;
+	private Depot depot;
+	private Cost cost;
 	
 	/**
 	 * Default constructor for MySolution Class.
@@ -41,6 +42,8 @@ public class MySolution extends SolutionAdapter {
 		this.depot = instance.getDepot();
 		this.routes = new Route[this.maxVehicleNumber];
 		this.cost = new Cost();
+
+		this.setCustomersNumber(instance.getCustomersNr());
 	}
 	
 	/**
@@ -222,5 +225,96 @@ public class MySolution extends SolutionAdapter {
 	 */
 	public void setRoutes(Route route, int index) {
 		this.routes[index] = route;
+	}
+
+	/**
+	 * @return the instance
+	 */
+	public Instance getInstance() {
+		return instance;
+	}
+
+	/**
+	 * @param instance the instance to set
+	 */
+	public void setInstance(Instance instance) {
+		this.instance = instance;
+	}
+
+	/**
+	 * @return the maxVehicleNumber
+	 */
+	public int getMaxVehicleNumber() {
+		return maxVehicleNumber;
+	}
+
+	/**
+	 * @param maxVehicleNumber the maxVehicleNumber to set
+	 */
+	public void setMaxVehicleNumber(int maxVehicleNumber) {
+		this.maxVehicleNumber = maxVehicleNumber;
+	}
+
+	/**
+	 * @return the maxVehicleCapacity
+	 */
+	public double getMaxVehicleCapacity() {
+		return maxVehicleCapacity;
+	}
+
+	/**
+	 * @param maxVehicleCapacity the maxVehicleCapacity to set
+	 */
+	public void setMaxVehicleCapacity(double maxVehicleCapacity) {
+		this.maxVehicleCapacity = maxVehicleCapacity;
+	}
+
+	/**
+	 * @return the customersNumber
+	 */
+	public int getCustomersNumber() {
+		return customersNumber;
+	}
+
+	/**
+	 * @param customersNumber the customersNumber to set
+	 */
+	public void setCustomersNumber(int customersNumber) {
+		this.customersNumber = customersNumber;
+	}
+
+	/**
+	 * @return the distances
+	 */
+	public double[][] getDistances() {
+		return distances;
+	}
+
+	/**
+	 * @param distances the distances to set
+	 */
+	public void setDistances(double[][] distances) {
+		this.distances = distances;
+	}
+
+	/**
+	 * @return the depot
+	 */
+	public Depot getDepot() {
+		return depot;
+	}
+
+	/**
+	 * @param depot the depot to set
+	 */
+	public void setDepot(Depot depot) {
+		this.depot = depot;
+	}
+
+	/**
+	 * @param cost the cost to set
+	 */
+	public void setCost(Cost cost) {
+		this.cost = cost;
 	}
 }
