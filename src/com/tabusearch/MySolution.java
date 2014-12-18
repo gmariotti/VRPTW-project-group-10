@@ -42,6 +42,7 @@ public class MySolution extends SolutionAdapter {
 		this.depot = instance.getDepot();
 		this.routes = new Route[this.maxVehicleNumber];
 		this.cost = new Cost();
+
 		this.setCustomersNumber(instance.getCustomersNr());
 	}
 	
