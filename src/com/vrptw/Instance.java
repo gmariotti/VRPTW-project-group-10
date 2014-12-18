@@ -3,7 +3,6 @@
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -22,7 +21,6 @@ public class Instance {
 	private double[]			durations;
 	private double[]			capacities;
 	private double[][]			distances;
-	@SuppressWarnings("unused")
 	private Route[]				routes;
 	private Random				random		= new Random();
 	private Parameters			parameters;
@@ -88,6 +86,7 @@ public class Instance {
 				customer.setNumber(in.nextInt() - 1);
 				customer.setXCoordinate(in.nextDouble());
 				customer.setYCoordinate(in.nextDouble());
+				customer.setLoad(in.nextDouble());
 				customer.setStartTw(in.nextInt());
 				customer.setEndTw(in.nextInt());
 				customer.setServiceDuration(in.nextDouble());

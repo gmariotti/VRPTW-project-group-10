@@ -35,6 +35,7 @@ public class Parameters {
 				// movesType = MovesType.SWAP;
 				// break;
 				case "-if":
+					// inputfileName has to be inserted just as the filename in the input folder
 					inputFileName = args[i + 1];
 					break;
 				case "-of":
