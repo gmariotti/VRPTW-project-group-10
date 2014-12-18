@@ -69,13 +69,13 @@ public class MySwapMove implements Move {
 		} else {
 			// position equal to the route length, so customer insert at the end
 			if (insertPositionIndex == customers.size()) {
-				
+
 			} else {
 				// position is equal to 0
 				if (insertPositionIndex == 0) {
-					
+
 				} else {
-					
+
 				}
 			}
 		}

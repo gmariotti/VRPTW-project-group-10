@@ -15,9 +15,10 @@ import com.vrptw.Instance;
 import com.vrptw.Route;
 
 /**
- * This class represents a move between two routes in which, choosing a customer from each route,
- * it will be created two new routes based on the customers of the two routes.
+ * This class represents a move between two routes in which, choosing a customer from each route, it
+ * will be created two new routes based on the customers of the two routes.
  */
+@SuppressWarnings("serial")
 public class MyTwoExchangeMove implements Move {
 
 	private Instance	instance;
@@ -56,10 +57,14 @@ public class MyTwoExchangeMove implements Move {
 	 * This method creates the two new routes based on the customers of the routes given as
 	 * parameters
 	 * 
-	 * @param routeFirst a route of the solution
-	 * @param routeSecond a route of the solution
-	 * @param firstCustomer the customer of the move in the first route 
-	 * @param secondCustomer the customer of the move in the second route
+	 * @param routeFirst
+	 *            a route of the solution
+	 * @param routeSecond
+	 *            a route of the solution
+	 * @param firstCustomer
+	 *            the customer of the move in the first route
+	 * @param secondCustomer
+	 *            the customer of the move in the second route
 	 */
 	private void evaluateNewRoutes(Route routeFirst, Route routeSecond, Customer firstCustomer,
 			Customer secondCustomer) {
@@ -68,7 +73,7 @@ public class MyTwoExchangeMove implements Move {
 		List<Customer> newCustomersSecond = new ArrayList<>();
 		List<Customer> oldCustomersFirst = routeFirst.getCustomers();
 		List<Customer> oldCustomersSecond = routeSecond.getCustomers();
-		
+
 		// scan the first route customers before the customer of the move
 		for (int i = 0; i < oldCustomersFirst.indexOf(firstCustomer); i++) {
 			Customer tmp = oldCustomersFirst.get(i);
@@ -76,11 +81,12 @@ public class MyTwoExchangeMove implements Move {
 		}
 		newCustomersFirst.add(firstCustomer);
 		// scan the second route customers after the customer of the move
-		for (int i = (oldCustomersSecond.indexOf(secondCustomer) + 1); i < oldCustomersSecond.size(); i++) {
+		for (int i = (oldCustomersSecond.indexOf(secondCustomer) + 1); i < oldCustomersSecond
+				.size(); i++) {
 			Customer tmp = oldCustomersSecond.get(i);
 			newCustomersFirst.add(tmp);
 		}
-		
+
 		// scan the second route customers before the customer of the move
 		for (int i = 0; i < oldCustomersSecond.indexOf(secondCustomer); i++) {
 			Customer tmp = oldCustomersSecond.get(i);
@@ -92,12 +98,29 @@ public class MyTwoExchangeMove implements Move {
 			Customer tmp = oldCustomersFirst.get(i);
 			newCustomersSecond.add(tmp);
 		}
-		
+
 		// set the new customers list for each route and evaluate the new cost
 		routeFirst.setCustomers(newCustomersFirst);
 		// objective function evaluation
 		routeSecond.setCustomers(newCustomersSecond);
 		// objective or route
+	}
+
+	/**
+	 * Identify a move for the SimpleTabuList
+	 * 
+	 * @return hash code that identify the move
+	 */
+	public int hashCode() {
+		int firstCustN = firstCustomer.getNumber();
+		int secondCustN = secondCustomer.getNumber();
+		if (firstCustN > secondCustN) {
+			secondCustN *= 10000;
+			return (firstCustN + secondCustN);
+		} else {
+			firstCustN *= 10000;
+			return (firstCustN + secondCustN);
+		}
 	}
 
 	/**

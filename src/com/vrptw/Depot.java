@@ -1,18 +1,17 @@
 ﻿package com.vrptw;
 
 /**
- * Depot class stores information about one depot which implements the Vertex
- * interface. It stores the number of the depot, it's capacity, coordinates,
- * it's working time(time windows)
+ * Depot class stores information about one depot which implements the Vertex interface. It stores
+ * the number of the depot, it's capacity, coordinates, it's working time(time windows)
  * 
  */
 public class Depot {
-	private int number;
-	private double xCoordinate;
-	private double yCoordinate;
-	private int startTw; 		// beginning of time window (earliest time for start of service), if any
-	private int endTw; 			// end of time window (latest time for start of service), if any
-
+	private int		number;
+	private double	xCoordinate;
+	private double	yCoordinate;
+	private int		startTw;		// beginning of time window (earliest time for start of
+									// service), if any
+	private int		endTw;			// end of time window (latest time for start of service), if any
 
 	public Depot() {
 		this.startTw = 0;
@@ -24,8 +23,8 @@ public class Depot {
 	 */
 	public String toString() {
 		String str = "Depot in coordinates (" + xCoordinate + ";" + yCoordinate + ")\n"
-				   + "that opens at " + startTw + " and closes at " + endTw;
-		
+				+ "that opens at " + startTw + " and closes at " + endTw;
+
 		return str;
 	}
 
@@ -61,7 +60,8 @@ public class Depot {
 	}
 
 	/**
-	 * @param startTw - The opening time of the depot.
+	 * @param startTw
+	 *            - The opening time of the depot.
 	 */
 	public void setStartTw(int startTw) {
 		this.startTw = startTw;
@@ -75,7 +75,8 @@ public class Depot {
 	}
 
 	/**
-	 * @param endTw - The closing time of the depot.
+	 * @param endTw
+	 *            - The closing time of the depot.
 	 */
 	public void setEndTw(int endTw) {
 		this.endTw = endTw;

@@ -1,5 +1,5 @@
 package com.tabusearch;
 
 public enum MovesType {
-	TWO_EXCHANGE, THREE_EXCHANGE, SWAP
+	TWO_EXCHANGE, SWAP
 }

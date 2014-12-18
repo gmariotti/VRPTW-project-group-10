@@ -2,17 +2,17 @@ package com.vrptw;
 
 /**
  * This class represents a generic vehicle entity
- *
+ * 
  */
 public class Vehicle {
-	private int vehicleNr;
-	private double capacity;
-	private double duration;
-	
+	private int		vehicleNr;
+	private double	capacity;
+	private double	duration;
+
 	public Vehicle() {
-		
+
 	}
-	
+
 	public Vehicle(int vehicleNr, double capacity, double duration) {
 		this.vehicleNr = vehicleNr;
 		this.capacity = capacity;
@@ -27,7 +27,8 @@ public class Vehicle {
 	}
 
 	/**
-	 * @param vehicleNr the vehicleNr to set
+	 * @param vehicleNr
+	 *            the vehicleNr to set
 	 */
 	public void setVehicleNr(int vehicleNr) {
 		this.vehicleNr = vehicleNr;
@@ -41,7 +42,8 @@ public class Vehicle {
 	}
 
 	/**
-	 * @param capacity the capacity to set
+	 * @param capacity
+	 *            the capacity to set
 	 */
 	public void setCapacity(double capacity) {
 		this.capacity = capacity;
@@ -55,10 +57,11 @@ public class Vehicle {
 	}
 
 	/**
-	 * @param duration the duration to set
+	 * @param duration
+	 *            the duration to set
 	 */
 	public void setDuration(double duration) {
 		this.duration = duration;
 	}
-	
+
 }

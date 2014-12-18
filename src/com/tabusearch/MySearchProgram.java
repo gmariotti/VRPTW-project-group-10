@@ -7,6 +7,7 @@ import java.io.PrintStream;
 
 import org.coinor.opents.*;
 
+import com.tabusearch.MySolution;
 import com.tabusearch.MySearchProgram;
 import com.vrptw.Cost;
 import com.vrptw.Instance;
@@ -31,59 +32,105 @@ public class MySearchProgram implements TabuSearchListener {
 	/**
 	 * Considered other parameters that can be used
 	 */
-	public MySearchProgram(Instance instance, Solution initialSol, MoveManager moveManager, ObjectiveFunction objFunc, TabuList tabuList, boolean minmax, PrintStream outPrintStream) {
-		tabuSearch = new SingleThreadedTabuSearch(initialSol, moveManager, objFunc, tabuList, new BestEverAspirationCriteria(), minmax );
-		/*feasibleIndex = -1;
-		bestIndex = 0;*/
+	public MySearchProgram(Instance instance, Solution initialSol, MoveManager moveManager,
+			ObjectiveFunction objFunc, TabuList tabuList, boolean minmax, PrintStream outPrintStream) {
+		tabuSearch = new SingleThreadedTabuSearch(initialSol, moveManager, objFunc, tabuList,
+				new BestEverAspirationCriteria(), minmax);
+		/*
+		 * feasibleIndex = -1; bestIndex = 0;
+		 */
 		this.instance = instance;
 		MySearchProgram.setIterationsDone(0);
 		tabuSearch.addTabuSearchListener(this);
-		//tabuSearch.addTabuSearchListener((MyTabuList)tabuList);
+		// tabuSearch.addTabuSearchListener((MyTabuList)tabuList);
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.coinor.opents.TabuSearchListener#tabuSearchStarted(org.coinor.opents.TabuSearchEvent)
+	 * When Tabu Search starts initialize best cost - best routes and feasible cost - feasible
+	 * routes
 	 */
 	@Override
 	public void tabuSearchStarted(TabuSearchEvent e) {
-		// TODO Auto-generated method stub
-
+		solution = ((MySolution) tabuSearch.getCurrentSolution());
+		// initialize the feasible and best cost with the initial solution objective value
+		double[] objectiveValue = solution.getObjectiveValue();
+		if (objectiveValue == null) {
+			System.err.println("ObjectiveValue equals to null into tabuSearchStarted");
+			System.exit(0);
+		}
+		bestCost = getCostFromObjective(objectiveValue);
+		feasibleCost = bestCost;
+		if (!feasibleCost.checkFeasible()) {
+			feasibleCost.setTotal(Double.POSITIVE_INFINITY);
+		}
+		feasibleRoutes = cloneRoutes(solution.getRoutes());
+		bestRoutes = feasibleRoutes;
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.coinor.opents.TabuSearchListener#tabuSearchStopped(org.coinor.opents.TabuSearchEvent)
+	 * When Tabu Search stops, set the solution equals to the best one found, and check if has a
+	 * feasible cost or not
 	 */
 	@Override
 	public void tabuSearchStopped(TabuSearchEvent e) {
-		// TODO Auto-generated method stub
-
+		solution = ((MySolution) tabuSearch.getBestSolution());
+		if (feasibleCost.getTotal() != Double.POSITIVE_INFINITY) {
+			solution.setCost(feasibleCost);
+			solution.setRoutes(feasibleRoutes);
+			// solution.setFeasibleIndex(feasibleIndex);
+			tabuSearch.setBestSolution(solution);
+		}
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.coinor.opents.TabuSearchListener#newBestSolutionFound(org.coinor.opents.TabuSearchEvent)
+	 * When a new best solution is found, we have to save it
 	 */
 	@Override
 	public void newBestSolutionFound(TabuSearchEvent e) {
-		// TODO Auto-generated method stub
+		solution = (MySolution) tabuSearch.getBestSolution();
+		this.setBestRoutes(solution.getRoutes());
+		double[] objectiveValue = solution.getObjectiveValue();
+		if (objectiveValue == null) {
+			System.err.println("ObjectiveValue equals to null into newBestSolutionFound");
+			System.exit(0);
+		}
+		this.setBestCost(getCostFromObjective(objectiveValue));
+		// bestIndex = tabuSearch.getIterationsCompleted() + 1;
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.coinor.opents.TabuSearchListener#newCurrentSolutionFound(org.coinor.opents.TabuSearchEvent
-	 * )
+	/**
+	 * When a new current solution is triggered we need to see if a new better feasible solution is
+	 * found
 	 */
 	@Override
-	public void newCurrentSolutionFound(TabuSearchEvent e) {
-		// TODO Auto-generated method stub
+	public void newCurrentSolutionFound(TabuSearchEvent event) {
+		solution = ((MySolution) tabuSearch.getCurrentSolution());
+		double[] objectiveValue = solution.getObjectiveValue();
+		if (objectiveValue == null) {
+			System.err.println("ObjectiveValue equals to null into newCurrentSolutionFound");
+			System.exit(0);
+		}
+		currentCost = getCostFromObjective(objectiveValue);
+		MySearchProgram.iterationsDone += 1;
 
+		// Check to see if a new feasible solution is found
+		// Checking with the current solution admits new feasible solution
+		// that are worst than the best solution
+		if (currentCost.checkFeasible() && currentCost.getTotal() < feasibleCost.getTotal()/*
+																							 * -
+																							 * instance
+																							 * .
+																							 * getPrecision
+																							 * ()
+																							 */) {
+			feasibleCost = currentCost;
+			feasibleRoutes = cloneRoutes(solution.getRoutes());
+			// set the new best to the current one
+			tabuSearch.setBestSolution(solution);
+			System.out.println("It " + tabuSearch.getIterationsCompleted() + " - New solution "
+					+ solution.getCost().getTotal());
+		}
 	}
 
 	/*
@@ -118,6 +165,38 @@ public class MySearchProgram implements TabuSearchListener {
 	public void noChangeInValueMoveMade(TabuSearchEvent e) {
 		// TODO Auto-generated method stub
 
+	}
+
+	/**
+	 * Clone the routes passed as a parameter
+	 * 
+	 * @param routes
+	 * @return
+	 */
+	private Route[] cloneRoutes(Route[] routes) {
+		Route[] clones = new Route[routes.length];
+		for (int i = 0; i < routes.length; i++) {
+			Route clone = new Route(routes[i]);
+			clones[i] = clone;
+		}
+		return clones;
+	}
+
+	/**
+	 * I don't know why he prefer to use this method
+	 * 
+	 * @param objectiveValue
+	 * @return
+	 */
+	private Cost getCostFromObjective(double[] objectiveValue) {
+		Cost cost = new Cost();
+		cost.setTotal(objectiveValue[1]);
+		cost.setTravelTime(objectiveValue[2]);
+		cost.setLoadViol(objectiveValue[3]);
+		cost.setDurationViol(objectiveValue[4]);
+		cost.setTwViol(objectiveValue[5]);
+
+		return cost;
 	}
 
 	/**
