@@ -56,10 +56,10 @@ public class VRPTW {
 			tabuList = new SimpleTabuList(tenure);
 
 			// Create Tabu Search object
-			searchProgram = new MySearchProgram(instance, initialSol, moveManager, objFunc, tabuList,
-					false, outPrintStream);
-			
-			// Start solving        
+			searchProgram = new MySearchProgram(instance, initialSol, moveManager, objFunc,
+					tabuList, false, outPrintStream);
+
+			// Start solving
 			searchProgram.tabuSearch.setIterationsToGo(parameters.getIterations());
 			searchProgram.tabuSearch.startSolving();
 

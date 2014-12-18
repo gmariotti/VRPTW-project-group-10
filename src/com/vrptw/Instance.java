@@ -8,24 +8,24 @@ import java.util.Random;
 import java.util.Scanner;
 
 /**
- * Instance class holds all the information about the problem, customers,
- * depots, vehicles. It offers functions to grab all the data from a file print
- * it formated and all the function needed for the initial solution.
+ * Instance class holds all the information about the problem, customers, depots, vehicles. It
+ * offers functions to grab all the data from a file print it formated and all the function needed
+ * for the initial solution.
  */
 public class Instance {
-	private int vehiclesNr;
-	private int customersNr;
-	private int depotsNr = 1;
-	private int daysNr = 1;
-	private ArrayList<Customer> customers = new ArrayList<>(); // vector of customers;
-	private Depot depot;
-	private double[] durations;
-	private double[] capacities;
-	private double[][] distances;
+	private int					vehiclesNr;
+	private int					customersNr;
+	private int					depotsNr	= 1;
+	private int					daysNr		= 1;
+	private ArrayList<Customer>	customers	= new ArrayList<>();	// vector of customers;
+	private Depot				depot;
+	private double[]			durations;
+	private double[]			capacities;
+	private double[][]			distances;
 	@SuppressWarnings("unused")
-	private Route[] routes;
-	private Random random = new Random();
-	private Parameters parameters;
+	private Route[]				routes;
+	private Random				random		= new Random();
+	private Parameters			parameters;
 
 	public Instance(Parameters parameters) {
 		this.setParameters(parameters);
@@ -35,16 +35,15 @@ public class Instance {
 	}
 
 	/**
-	 * 	@return The time necessary to travel from node 1 to node 2
+	 * @return The time necessary to travel from node 1 to node 2
 	 */
 	public double getTravelTime(int node1, int node2) {
 		return this.distances[node1][node2];
 	}
 
 	/**
-	 * Read from file the problem data: D and Q, customers data and depots data.
-	 * After the variables are populated calculates the distances, assign
-	 * customers to depot and calculates angles
+	 * Read from file the problem data: D and Q, customers data and depots data. After the variables
+	 * are populated calculates the distances, assign customers to depot and calculates angles
 	 * 
 	 * @param filename
 	 */
@@ -79,7 +78,7 @@ public class Instance {
 			depot.setStartTw(in.nextInt());
 			depot.setEndTw(in.nextInt());
 			in.nextDouble();
-			
+
 			this.depot = depot;
 
 			// read customers data
@@ -101,9 +100,8 @@ public class Instance {
 
 			depot.setNumber(customersNr);
 
-			
-			if(parameters.getTabuTenure() == -1) {
-				parameters.setTabuTenure((int)(Math.sqrt(customersNr)));
+			if (parameters.getTabuTenure() == -1) {
+				parameters.setTabuTenure((int) (Math.sqrt(customersNr)));
 			}
 
 			calculateDistances();
@@ -125,21 +123,25 @@ public class Instance {
 	 * Calculate the symmetric euclidean matrix of costs
 	 */
 	public void calculateDistances() {
-		
+
 		distances = new double[customersNr + depotsNr][customersNr + depotsNr];
-		
+
 		for (int i = 0; i < customersNr + depotsNr - 1; ++i) {
 			for (int j = i + 1; j < customersNr + depotsNr; ++j) {
-					// distance between two customers
+				// distance between two customers
 				if (i < customersNr && j < customersNr) {
-					distances[i][j] = Math.sqrt(Math.pow(customers.get(i).getXCoordinate() - customers.get(j).getXCoordinate(), 2)
-									+ Math.pow(customers.get(i).getYCoordinate() - customers.get(j).getYCoordinate(), 2));
-				}	// distance of a customer from the depot 
+					distances[i][j] = Math.sqrt(Math.pow(customers.get(i).getXCoordinate()
+							- customers.get(j).getXCoordinate(), 2)
+							+ Math.pow(customers.get(i).getYCoordinate()
+									- customers.get(j).getYCoordinate(), 2));
+				} // distance of a customer from the depot
 				else if (i < customersNr && j >= customersNr) {
-					distances[i][j] = Math.sqrt(Math.pow(customers.get(i).getXCoordinate() - depot.getXCoordinate(), 2)
-							        + Math.pow(customers.get(i).getYCoordinate() - depot.getYCoordinate(), 2));	
+					distances[i][j] = Math.sqrt(Math.pow(
+							customers.get(i).getXCoordinate() - depot.getXCoordinate(), 2)
+							+ Math.pow(customers.get(i).getYCoordinate() - depot.getYCoordinate(),
+									2));
 				}
-				
+
 				distances[i][j] = Math.floor(distances[i][j] * 10) / 10;
 				distances[j][i] = distances[i][j];
 			}
@@ -154,7 +156,8 @@ public class Instance {
 	}
 
 	/**
-	 * @param vehiclesNr the vehiclesNr to set
+	 * @param vehiclesNr
+	 *            the vehiclesNr to set
 	 */
 	public void setVehiclesNr(int vehiclesNr) {
 		this.vehiclesNr = vehiclesNr;
@@ -168,7 +171,8 @@ public class Instance {
 	}
 
 	/**
-	 * @param customersNr the customersNr to set
+	 * @param customersNr
+	 *            the customersNr to set
 	 */
 	public void setCustomersNr(int customersNr) {
 		this.customersNr = customersNr;
@@ -183,7 +187,8 @@ public class Instance {
 	}
 
 	/**
-	 * @param depotsNr the depotsNr to set
+	 * @param depotsNr
+	 *            the depotsNr to set
 	 */
 	public void setDepotsNr(int depotsNr) {
 		this.depotsNr = depotsNr;
@@ -198,7 +203,8 @@ public class Instance {
 	}
 
 	/**
-	 * @param daysNr the daysNr to set
+	 * @param daysNr
+	 *            the daysNr to set
 	 */
 	public void setDaysNr(int daysNr) {
 		this.daysNr = daysNr;
@@ -212,7 +218,8 @@ public class Instance {
 	}
 
 	/**
-	 * @param customers the customers to set
+	 * @param customers
+	 *            the customers to set
 	 */
 	public void setCustomers(ArrayList<Customer> customers) {
 		this.customers = customers;
@@ -224,9 +231,10 @@ public class Instance {
 	public Depot getDepot() {
 		return depot;
 	}
-	
+
 	/**
-	 * @param depot the depot to set
+	 * @param depot
+	 *            the depot to set
 	 */
 	public void setDepot(Depot depot) {
 		this.depot = depot;
@@ -240,7 +248,8 @@ public class Instance {
 	}
 
 	/**
-	 * @param durations the durations to set
+	 * @param durations
+	 *            the durations to set
 	 */
 	public void setDurations(double[] durations) {
 		this.durations = durations;
@@ -254,7 +263,8 @@ public class Instance {
 	}
 
 	/**
-	 * @param capacities the capacities to set
+	 * @param capacities
+	 *            the capacities to set
 	 */
 	public void setCapacities(double[] capacities) {
 		this.capacities = capacities;
@@ -263,15 +273,17 @@ public class Instance {
 	public double getVehicleCapacity() {
 		return this.capacities[0];
 	}
-	
+
 	/**
 	 * @return the distances
 	 */
 	public double[][] getDistances() {
 		return distances;
 	}
+
 	/**
-	 * @param distances the distances to set
+	 * @param distances
+	 *            the distances to set
 	 */
 	public void setDistances(double[][] distances) {
 		this.distances = distances;
@@ -285,7 +297,8 @@ public class Instance {
 	}
 
 	/**
-	 * @param routes the routes to set
+	 * @param routes
+	 *            the routes to set
 	 */
 	public void setRoutes(Route[] routes) {
 		this.routes = routes;
@@ -297,12 +310,15 @@ public class Instance {
 	public Random getRandom() {
 		return random;
 	}
+
 	/**
-	 * @param random the random to set
+	 * @param random
+	 *            the random to set
 	 */
 	public void setRandom(Random random) {
 		this.random = random;
 	}
+
 	/**
 	 * @return the parameters
 	 */
@@ -321,13 +337,11 @@ public class Instance {
 	/**
 	 * Get the capacity for the supplied day number.
 	 * 
-	 * @param index - This is the day number.
-	 * @return The maximum capacity a vehicle can carry for the
-	 * specified day.
+	 * @param index
+	 *            - This is the day number.
+	 * @return The maximum capacity a vehicle can carry for the specified day.
 	 */
-	public double getCapacity(int index){
+	public double getCapacity(int index) {
 		return capacities[index];
 	}
 }
-
-

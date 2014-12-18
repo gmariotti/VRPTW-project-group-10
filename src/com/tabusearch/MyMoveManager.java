@@ -89,7 +89,8 @@ public class MyMoveManager implements MoveManager {
 					// scan all customers of route k
 					List<Customer> otherCustomers = routes[k].getCustomers();
 					for (int l = 0; l < otherCustomers.size(); l++) {
-						// if Granular Attribute and distance with customer.calculateDistance(otherCustomer)
+						// if Granular Attribute and distance with
+						// customer.calculateDistance(otherCustomer)
 						Customer otherCustomer = otherCustomers.get(l);
 						Move move = new MyTwoExchangeMove(MyMoveManager.getInstance(), customer,
 								otherCustomer, i, k);
