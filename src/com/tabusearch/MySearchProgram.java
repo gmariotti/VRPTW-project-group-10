@@ -117,8 +117,13 @@ public class MySearchProgram implements TabuSearchListener {
 		// Check to see if a new feasible solution is found
 		// Checking with the current solution admits new feasible solution
 		// that are worst than the best solution
-		if (currentCost.checkFeasible()
-				&& currentCost.getTotal() < feasibleCost.getTotal()/* - instance.getPrecision()*/) {
+		if (currentCost.checkFeasible() && currentCost.getTotal() < feasibleCost.getTotal()/*
+																							 * -
+																							 * instance
+																							 * .
+																							 * getPrecision
+																							 * ()
+																							 */) {
 			feasibleCost = currentCost;
 			feasibleRoutes = cloneRoutes(solution.getRoutes());
 			// set the new best to the current one
@@ -164,6 +169,7 @@ public class MySearchProgram implements TabuSearchListener {
 
 	/**
 	 * Clone the routes passed as a parameter
+	 * 
 	 * @param routes
 	 * @return
 	 */
@@ -178,6 +184,7 @@ public class MySearchProgram implements TabuSearchListener {
 
 	/**
 	 * I don't know why he prefer to use this method
+	 * 
 	 * @param objectiveValue
 	 * @return
 	 */
