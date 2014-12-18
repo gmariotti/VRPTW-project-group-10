@@ -49,6 +49,10 @@ public class VRPTW {
 			initialSol = new MySolution(instance);
 			objFunc = new MyObjectiveFunction(instance);
 			initialSol.generateInitialSolution();
+			
+			// temporary just to see if initialSol works
+			initialSol.print();
+			
 			moveManager = new MyMoveManager(instance);
 			moveManager.setMovesType(parameters.getMovesType());
 

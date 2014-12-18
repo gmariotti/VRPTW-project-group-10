@@ -3,6 +3,7 @@
  */
 package com.tabusearch;
 
+import java.io.FileWriter;
 import java.util.*;
 
 import org.coinor.opents.SolutionAdapter;
@@ -56,7 +57,16 @@ public class MySolution extends SolutionAdapter {
 	 *            .
 	 */
 	public void generateInitialSolution() {
-		List<Customer> customers = this.instance.getCustomers();
+		/*
+		 * Initialize the customers arraylist, creating a new customer identical to the one in the
+		 * instace.customers list. In this way we avoid any modification on the main list of
+		 * customer
+		 */
+		List<Customer> customers = new ArrayList<Customer>();
+		for (Customer tmp : this.instance.getCustomers()) {
+			Customer customer = new Customer(tmp);
+			customers.add(customer);
+		}
 
 		/*
 		 * At the beginning, we generate a solution by : - selecting a vehicle - selecting a
@@ -70,10 +80,10 @@ public class MySolution extends SolutionAdapter {
 		Boolean stop = Boolean.FALSE; // The stopping condition will be true when there are no
 										// customers left.
 
-		// Temporary list of customers
-		List<Customer> customersPerVehicle = new ArrayList<Customer>();
-
 		while (!stop) {
+
+			// Temporary list of customers
+			List<Customer> customersPerVehicle = new ArrayList<Customer>();
 
 			// Create a new vehicle
 			Vehicle vehicle = new Vehicle();
@@ -89,7 +99,7 @@ public class MySolution extends SolutionAdapter {
 			double[] array = new double[this.distances.length];
 
 			Boolean full = Boolean.FALSE;
-			while (!full) {
+			while (!full && customers.size() > 0) {
 
 				// fixed row (customer to consider), variable columns (all the other customers)
 				for (column = 0; column < array.length; column++) {
@@ -136,14 +146,16 @@ public class MySolution extends SolutionAdapter {
 			Route route = new Route();
 			route.setAssignedVehicle(vehicle);
 			route.setCustomers(customersPerVehicle);
+			route.setIndex(vehicleNumber);
 
 			// Add this Route to the array of routes
-			this.routes[vehicleNumber] = route;
+			this.routes[vehicleNumber-1] = route;
 
 			// empty the temporary list of customers
-			for (Customer customer : customersPerVehicle) {
-				customersPerVehicle.remove(customer);
-			}
+			/*
+			 * for (Customer customer : customersPerVehicle) { customersPerVehicle.remove(customer);
+			 * } I don't know why he uses it, but it creates an error
+			 */
 
 			vehicleNumber++; // increment vehicle number
 
@@ -194,6 +206,32 @@ public class MySolution extends SolutionAdapter {
 		}
 		return newSolution;
 
+	}
+
+	public void print() {
+		Route[] routes = this.getRoutes();
+		String solution = "";
+		for (Route route : routes) {
+			if (route == null) {
+				continue;
+			}
+			solution += "R#" + route.getIndex() + " V#" + route.getAssignedVehicle().getVehicleNr()
+					+ " ";
+			List<Customer> customers = route.getCustomers();
+			for (Customer cust : customers) {
+				solution += "C#" + cust.getNumber() + " ";
+			}
+			solution += "\n";
+		}
+		System.out.println(solution);
+		try {
+			FileWriter fw = new FileWriter(System.getProperty("user.dir")
+					+ "/output/routeOfSolution.txt", true);
+			fw.write(solution);
+			fw.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	public Cost getCost() {
@@ -345,4 +383,5 @@ public class MySolution extends SolutionAdapter {
 	public void setCost(Cost cost) {
 		this.cost = cost;
 	}
+
 }
