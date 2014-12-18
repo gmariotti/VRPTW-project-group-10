@@ -25,6 +25,7 @@ public class MySolution extends SolutionAdapter {
 	private Depot depot;
 	private Cost cost;
 	
+	
 	/**
 	 * Default constructor for MySolution Class.
 	 * It does nothing.
@@ -225,6 +226,18 @@ public class MySolution extends SolutionAdapter {
 	 */
 	public void setRoutes(Route route, int index) {
 		this.routes[index] = route;
+	}
+
+	public double getAlpha() {
+		return alpha;
+	}
+
+	public double getBeta() {
+		return beta;
+	}
+
+	public double getGamma() {
+		return gamma;
 	}
 
 	/**
