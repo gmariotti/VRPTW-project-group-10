@@ -157,7 +157,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		cost.twViol = Math.max(0, customer.getArriveTime() - customer.getEndTw());
 		customer.setTwViol(cost.twViol);
 		
-		cost.serviceTime = customer.getServiceDuration();
+		cost.setServiceTime(customer.getServiceDuration());
 		
 		cost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
 		
@@ -181,6 +181,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		cost.load = second.getLoad();
 		
 		cost.serviceTime = second.getServiceDuration();
+
 		
 		cost.waitingTime = Math.max(0, second.getStartTw() - second.getArriveTime());
 		second.setWaitingTime(cost.waitingTime);

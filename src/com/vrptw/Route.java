@@ -27,7 +27,9 @@ public class Route {
 		StringBuffer print = new StringBuffer();
 		print.append("\n" + "Route[" + index + "]");
 		print.append("\n" + "--------------------------------------------");
-		print.append("\n" + "| Capacity=" + cost.load + " ServiceTime=" + cost.serviceTime + " TravelTime=" + cost.travelTime + " WaitingTime=" + cost.waitingTime +" Totaltime=" + cost.total);
+		print.append("\n" + "| Capacity=" + cost.getLoad() + " ServiceTime="
+				+ cost.getServiceTime() + " TravelTime=" + cost.getTravelTime() + " WaitingTime="
+				+ cost.getWaitingTime() +" Totaltime=" + cost.getTotal());
 		print.append("\n" + cost);
 		print.append("\n");
 		return print.toString();

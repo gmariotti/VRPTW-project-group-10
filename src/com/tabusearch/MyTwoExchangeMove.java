@@ -18,6 +18,7 @@ import com.vrptw.Route;
  * This class represents a move between two routes in which, choosing a customer from each route,
  * it will be created two new routes based on the customers of the two routes.
  */
+@SuppressWarnings("serial")
 public class MyTwoExchangeMove implements Move {
 
 	private Instance	instance;
@@ -100,6 +101,22 @@ public class MyTwoExchangeMove implements Move {
 		// objective or route
 	}
 
+	/**
+	 * Identify a move for the SimpleTabuList
+	 * @return hash code that identify the move
+	 */
+	public int hashCode() {
+		int firstCustN = firstCustomer.getNumber();
+		int secondCustN = secondCustomer.getNumber();
+		if (firstCustN > secondCustN) {
+			secondCustN *= 10000;
+			return (firstCustN + secondCustN);
+		} else {
+			firstCustN *= 10000;
+			return (firstCustN + secondCustN);
+		}
+	}
+	
 	/**
 	 * @return the instance
 	 */

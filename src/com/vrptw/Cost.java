@@ -5,16 +5,16 @@ package com.vrptw;
  * has total which is the sum of travel, capacityViol, durationViol, twViol.
  */
 public class Cost {
-    public double total; 				// sum of all the costs
-    public double travelTime; 			// sum of all travel times
-    public double load; 				// sum of all quantities
-    public double serviceTime; 			// sum of all service time
-    public double waitingTime; 			// sum of all waiting times
-    public double loadViol; 			// violation of the load
-    public double durationViol; 		// violation of the duration waiting time + service time
-    public double twViol; 				// violation of the time window
-    public double returnToDepotTime; 	// stores time to return to the depot
-    public double depotTwViol; 			// stores the time window violation of the depot
+    private double total; 				// sum of all the costs
+    private double travelTime; 			// sum of all travel times
+    private double load; 				// sum of all quantities
+    private double serviceTime; 			// sum of all service time
+    private double waitingTime; 			// sum of all waiting times
+    private double loadViol; 			// violation of the load
+    private double durationViol; 		// violation of the duration waiting time + service time
+    private double twViol; 				// violation of the time window
+    private double returnToDepotTime; 	// stores time to return to the depot
+    private double depotTwViol; 			// stores the time window violation of the depot
 
     public Cost() {
     	total = 0;
