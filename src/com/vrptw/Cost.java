@@ -58,8 +58,9 @@ public class Cost {
     /**
      * This method allows the addition of two costs and stores the
      * corresponding values in the calling object. The method consists
-     * in incrementing all costs and violations to the values of
-     * the original object.
+     * in adding all costs and violations to the costs and violations
+     * in the original object.
+     * @param cost - The cost to add to the calling object
      */
     
     public void add(Cost cost)
@@ -75,6 +76,49 @@ public class Cost {
     	this.twViol += cost.twViol;
     	this.depotTwViol += cost.depotTwViol;
     }
+    
+    /**
+     * This method is similar to the add method of this class, but it
+     * also allows you to set the time in which you return to the depot.
+     * @param cost - The cost to add to the calling object
+     * @param setReturnToDepotTime - set to true to also set the return time to the depot with this cost
+     */
+    
+    public void add(Cost cost, boolean setReturnToDepotTime)
+    {
+    	this.total += cost.total;
+    	this.travelTime += cost.travelTime;
+    	this.load += cost.load;
+    	this.serviceTime += cost.serviceTime;
+    	this.waitingTime += cost.waitingTime;
+
+    	this.loadViol += cost.loadViol;
+    	this.durationViol += cost.durationViol;
+    	this.twViol += cost.twViol;
+    	this.depotTwViol += cost.depotTwViol;
+    	
+    	this.returnToDepotTime = (setReturnToDepotTime ? cost.returnToDepotTime : 0);
+    }
+    
+    /**
+     * This method allows the subtraction between two costs and stores
+     * the corresponding values in the calling object. The method consists
+     * in subtracting all costs and violations from the costs and violations
+     * in the original object.
+     * @param cost - The cost to add to the calling object
+     */
+    public void subtract(Cost cost) {
+    	this.total -= cost.total;
+    	this.travelTime -= cost.travelTime;
+    	this.load -= cost.load;
+    	this.serviceTime -= cost.serviceTime;
+    	this.waitingTime -= cost.waitingTime;
+
+    	this.loadViol -= cost.loadViol;
+    	this.durationViol -= cost.durationViol;
+    	this.twViol -= cost.twViol;
+    	this.depotTwViol -= cost.depotTwViol;	
+	}
     
     /**
      * Set the total cost based on alpha, beta, gamma. These parameters
@@ -217,4 +261,5 @@ public class Cost {
     	this.depotTwViol = depotTwViol;
     }
 
+	
 }

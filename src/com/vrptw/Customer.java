@@ -188,5 +188,16 @@ public class Customer {
     public void setCombinationsList(int[][] combinationsList) {
         this.combinationsList = combinationsList;
     }
+    
+    /**
+     * @return The time in which a vehicle leaves a customer. This
+     * is determined by adding the time in which the vehicle arrived
+     * at and the service duration.
+     */
+    
+    public double getDepartureTime()
+    {
+    	return arriveTime + serviceDuration;
+    }
 
 }

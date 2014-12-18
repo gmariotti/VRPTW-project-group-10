@@ -16,13 +16,18 @@ import com.vrptw.*;
 @SuppressWarnings("serial")
 public class MySolution extends SolutionAdapter {
 	Route[] routes;
-
+	private double alpha;
+	private double beta;
+	private double gamma;
+	private Cost cost;
+	
 	/**
 	 * The 'solution' object is a hash table where:
 	 * - VehicleNumber is the key,
 	 * - Route is the list of the customers visited by the Vehicle.
 	 */
 	Map<Integer, Route> solution = new ConcurrentHashMap<Integer, Route>();
+	
 	
 	/**
 	 * Default constructor for MySolution Class.
@@ -219,5 +224,21 @@ public class MySolution extends SolutionAdapter {
 	 */
 	public void setRoutes(Route route, int index) {
 		this.routes[index] = route;
+	}
+
+	public double getAlpha() {
+		return alpha;
+	}
+
+	public double getBeta() {
+		return beta;
+	}
+
+	public double getGamma() {
+		return gamma;
+	}
+
+	public void setCost(Cost cost) {
+		this.cost = cost;
 	}
 }
