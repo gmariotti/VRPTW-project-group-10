@@ -58,8 +58,8 @@ public class Cost {
 
 	/**
 	 * This method allows the addition of two costs and stores the corresponding values in the
-	 * calling object. The method consists in adding all costs and violations to the costs and
-	 * violations in the original object.
+	 * calling object. The method consists in adding all costs and time window violations to the costs
+	 * and violations in the original object.
 	 * 
 	 * @param cost
 	 *            - The cost to add to the calling object
@@ -71,9 +71,7 @@ public class Cost {
 		this.load += cost.load;
 		this.serviceTime += cost.serviceTime;
 		this.waitingTime += cost.waitingTime;
-
-		this.loadViol += cost.loadViol;
-		this.durationViol += cost.durationViol;
+		
 		this.twViol += cost.twViol;
 		this.depotTwViol += cost.depotTwViol;
 	}
@@ -95,8 +93,6 @@ public class Cost {
 		this.serviceTime += cost.serviceTime;
 		this.waitingTime += cost.waitingTime;
 
-		this.loadViol += cost.loadViol;
-		this.durationViol += cost.durationViol;
 		this.twViol += cost.twViol;
 		this.depotTwViol += cost.depotTwViol;
 
@@ -109,7 +105,7 @@ public class Cost {
 	 * costs and violations in the original object.
 	 * 
 	 * @param cost
-	 *            - The cost to add to the calling object
+	 *            - The cost to subtract to the calling object
 	 */
 	public void subtract(Cost cost) {
 		this.total -= cost.total;
@@ -117,9 +113,7 @@ public class Cost {
 		this.load -= cost.load;
 		this.serviceTime -= cost.serviceTime;
 		this.waitingTime -= cost.waitingTime;
-
-		this.loadViol -= cost.loadViol;
-		this.durationViol -= cost.durationViol;
+		
 		this.twViol -= cost.twViol;
 		this.depotTwViol -= cost.depotTwViol;
 	}
