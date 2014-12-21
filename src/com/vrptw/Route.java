@@ -113,4 +113,14 @@ public class Route {
 			customers.add(index, customer);
 		}
 	}
+	
+	/**
+	 * Finds the index of a specific customer in the route which calls the function.
+	 * @param customer - The customer whose index we want to find.
+	 * @return The index in the list of customers to visit where the customer
+	 * can be found.
+	 */
+	public int indexOfCustomer(Customer customer) {
+		return customers.indexOf(customer);
+	}
 }
