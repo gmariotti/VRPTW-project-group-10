@@ -75,119 +75,140 @@ public class MySolution extends SolutionAdapter {
 		 */
 
 		int vehicleNumber = 1; // First vehicle (i is the variable counting the vehicles)
-		double load = 0; // First load of a vehicle (need to be less than maxCapacity)
 
 		Boolean stop = Boolean.FALSE; // The stopping condition will be true when there are no
 										// customers left.
+		
+		/*
+		 * Each iteration is the creation of a route
+		 */
+		while (!stop) {			
+			Depot depot = this.getDepot();
+			List<Double> customersCost = new ArrayList<>();
+			Vehicle vehicle = new Vehicle(vehicleNumber, this.getMaxVehicleCapacity(), 0);
+			double load = 0;
+			double time = 0;
+			for (Customer customer : customers) {
+				// cost from the depot into customersCost
+				double distanceCost = customer.getDistance(depot.getXCoordinate(),
+						depot.getYCoordinate());
+				if (distanceCost < customer.getStartTw()) { // I have to wait the opening time
+					customersCost.add((double) customer.getStartTw());
+				} else { // I need more time to arrive compared to the opening time
+					customersCost.add(distanceCost);
+				}
+			}
+			List<Customer> routeCustomers = new ArrayList<>();
+			int index = minimumCost(customersCost);
+			Customer customerToAdd = customers.get(index);
+			// add the customer to the route
+			routeCustomers.add(customerToAdd);
+			load += customerToAdd.getLoad();
+			customers.remove(index); // the list is automatically reordered
 
-		while (!stop) {
+			// increment the time
+			time = customersCost.get(index) + customerToAdd.getServiceDuration();
 
-			// Temporary list of customers
-			List<Customer> customersPerVehicle = new ArrayList<Customer>();
-
-			// Create a new vehicle
-			Vehicle vehicle = new Vehicle();
-			vehicle.setVehicleNr(vehicleNumber);
-
-			// set the initial load to 0
-			load = 0;
-
-			// we calculate the minimum of the distances between depot and customers
-			// so we need an array : distances between the depot and all customers
-			int row = 0; // depot
-			int column = 0; // all customers
-			double[] array = new double[this.distances.length];
-
+			/*
+			 * Iterate starting from the last customer added
+			 */
 			Boolean full = Boolean.FALSE;
-			while (!full && customers.size() > 0) {
-
-				// fixed row (customer to consider), variable columns (all the other customers)
-				for (column = 0; column < array.length; column++) {
-					if (column == row) {
-						array[column] = Double.POSITIVE_INFINITY;
+			
+			while (!full || customers.size() > 0) {
+				
+				customersCost = new ArrayList<>();
+				for (Customer customer : customers) {
+					// evaluate distance
+					double distanceCost = customer.getDistance(customerToAdd.getXCoordinate(),
+							customerToAdd.getYCoordinate());
+					// check feasible
+					if ((load + customer.getLoad()) <= vehicle.getCapacity()
+							&& (time + distanceCost) < (customer.getEndTw() - customer
+									.getServiceDuration())) {
+						if ((time + distanceCost) < customer.getStartTw()) { // I have to wait
+							customersCost.add(customer.getStartTw() - time);
+						} else {
+							customersCost.add(distanceCost);
+						}
 					} else {
-						array[column] = this.distances[row][column];
+						customersCost.add(Double.POSITIVE_INFINITY);
 					}
 				}
-				// we calculate the min distance between the considered customer and all others
-				double minDistance[] = minimum(array);
+				// if there isn't any feasible customer than I exit
+				if (!feasibleCustomers(customersCost)) {
+					break;
+				}
+				index = minimumCost(customersCost);
+				customerToAdd = customers.get(index);
+				// add the customerToAdd
+				routeCustomers.add(customerToAdd);
+				load += customerToAdd.getLoad();
+				customers.remove(index); // the list is automatically reordered
 
-				// we get the index of the nearest customer
-				int index = (int) minDistance[1];
+				// increment the time
+				time += customersCost.get(index) + customerToAdd.getServiceDuration();
 
-				// we select the customer with the minimum distance (by his index)
-				Customer customer = customers.get(index);
-
-				// If we can add this customer to the vehicle (final load is less than maxCapacity)
-				if ((customer.getLoad() + load) < this.maxVehicleCapacity) {
-
-					// then we add the customer
-					customersPerVehicle.add(customer);
-					// we increment the total load
-					load = customer.getLoad() + load;
-					// and we remove it from the list (not to serve twice the same customer)
-					customers.remove(customer);
-
-				} else { // it means that the vehicle is full
+				if (load >= vehicle.getCapacity()) {
 					full = Boolean.TRUE;
 				}
-
-				// then we loop, considering the nearest customer from the selected customer
-				row = index;
-
-			} // end while if vehicle full, otherwise loop
-
-			// If there are no customers left, we can stop
-			if (customers.isEmpty()) {
-				stop = Boolean.TRUE;
 			}
 
-			// create new Route
-			Route route = new Route();
-			route.setAssignedVehicle(vehicle);
-			route.setCustomers(customersPerVehicle);
-			route.setIndex(vehicleNumber);
-
-			// Add this Route to the array of routes
-			this.routes[vehicleNumber-1] = route;
-
-			// empty the temporary list of customers
 			/*
-			 * for (Customer customer : customersPerVehicle) { customersPerVehicle.remove(customer);
-			 * } I don't know why he uses it, but it creates an error
+			 * Generate the new route
 			 */
+			Route route = new Route();
+			route.setIndex(vehicleNumber - 1);
+			route.setCustomers(routeCustomers);
+			route.setAssignedVehicle(vehicle);
+			route.setDepot(depot);
 
-			vehicleNumber++; // increment vehicle number
+			routes[vehicleNumber - 1] = route;
+			vehicleNumber++;
 
-			// if we need more vehicles than specified, solution is infeasible
-			if (vehicleNumber >= this.maxVehicleNumber) {
+			// if there aren't other customers than exit
+			if (customers.size() == 0) {
 				stop = Boolean.TRUE;
 			}
-
-		} // end while if no customers remaining, otherwise loop
+		}
 
 	} // end function
 
 	/**
-	 * This function calculate the minimum of an array.
-	 * 
-	 * @param array
-	 * @return The minimum distance, and the customer associated
+	 * check if there are one or more feasibleCustomers
 	 */
-	private double[] minimum(double[] array) {
-		double[] result = new double[2];
-		int index = 0;
-		double distance = Double.POSITIVE_INFINITY;
+	private boolean feasibleCustomers(List<Double> customersCost) {
+		// no elements in the list
+		if (customersCost.size() == 0) {
+			return false;
+		}
+		boolean feasible = false;
+		while (!feasible) {
+			for (Double cost : customersCost) {
+				if (cost < Double.POSITIVE_INFINITY) {
+					feasible = true;
+					break;
+				}
+			}
+			break;
+		}
+		return feasible;
+	}
 
-		for (int i = 0; i < array.length; i++) {
-			if (array[i] < distance) {
-				distance = array[i];
+	/**
+	 * Get the index of the element with the minimum cost
+	 * 
+	 * @param customersCost
+	 *            The list of cost to analyze
+	 * @return The index of the minimum cost element
+	 */
+	private int minimumCost(List<Double> customersCost) {
+		double result = Double.POSITIVE_INFINITY;
+		for (double cost : customersCost) {
+			if (cost < result) {
+				result = cost;
 			}
 		}
-
-		result[0] = distance;
-		result[1] = index;
-		return result;
+		return customersCost.indexOf(result);
 	}
 
 	/**
@@ -232,8 +253,7 @@ public class MySolution extends SolutionAdapter {
 		}
 		System.out.println(solution);
 		try {
-			FileWriter fw = new FileWriter(System.getProperty("user.dir")
-					+ output, true);
+			FileWriter fw = new FileWriter(System.getProperty("user.dir") + output, true);
 			fw.write(solution);
 			fw.close();
 		} catch (Exception ex) {
