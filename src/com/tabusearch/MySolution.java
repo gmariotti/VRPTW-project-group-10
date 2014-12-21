@@ -42,12 +42,11 @@ public class MySolution extends SolutionAdapter {
 		this.instance = instance;
 		this.maxVehicleNumber = instance.getVehiclesNr();
 		this.maxVehicleCapacity = instance.getVehicleCapacity();
+		this.customersNumber = instance.getCustomersNr();
 		this.distances = instance.getDistances();
 		this.depot = instance.getDepot();
 		this.routes = new Route[this.maxVehicleNumber];
 		this.cost = new Cost();
-
-		this.setCustomersNumber(instance.getCustomersNr());
 	}
 
 	/**
@@ -382,6 +381,40 @@ public class MySolution extends SolutionAdapter {
 	 */
 	public void setCost(Cost cost) {
 		this.cost = cost;
+	}
+	
+	public Object clone()
+	{
+		MySolution clonedSolution = new MySolution(instance);
+		List<Customer> customers;
+		int i = 0;
+		int j;
+		
+		clonedSolution.setCost(new Cost(this.cost));
+		
+		for(Route route : this.routes)											
+		{
+			if(route == null) { break; }
+			customers = route.getCustomers();
+			
+			clonedSolution.routes[i] = new Route();
+			// clone route information
+			clonedSolution.routes[i].setIndex(route.getIndex());
+			clonedSolution.routes[i].setDepot(clonedSolution.depot);
+			clonedSolution.routes[i].setAssignedVehicle(route.getAssignedVehicle());
+			clonedSolution.routes[i].setCost(new Cost(route.getCost()));
+			
+			j = 0;
+			for(Customer customer : customers)									
+			{
+				// clone customers
+				clonedSolution.routes[i].addCustomer(new Customer(customer), j);
+				j++;
+			}
+			i++;
+		}
+
+		return clonedSolution;
 	}
 
 }

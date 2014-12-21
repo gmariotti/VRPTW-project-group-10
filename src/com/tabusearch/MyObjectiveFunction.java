@@ -88,10 +88,8 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 			
 			totalVarCost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
 			
-			newTotal = totalVarCost.getTotal() + currentSolution.getCost().getTotal();
-			
-			if(currentSolution.getObjectiveValue()[0] < newTotal)
-				penalty = penalizationFactor * newTotal;
+			if(currentSolution.getObjectiveValue()[0] < totalVarCost.getTotal())
+				penalty = penalizationFactor * totalVarCost.getTotal();
 			
 			return new double[]{newTotal + penalty, newTotal, 
 								currentSolution.getCost().getTravelTime() + totalVarCost.getTravelTime(), 
@@ -124,7 +122,8 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		Cost cost;
 
 		for (Route route : routes) {
-			route.setCost(new Cost()); // reset the cost of the route for the calculation
+			if(route == null) { break; }
+			route.getCost().reset(); // reset the cost of the route for the calculation
 			customers = route.getCustomers();
 
 			currentCustomer = customers.get(0);
@@ -302,7 +301,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 	
 	private Cost evaluateSegmentCost(Route route, int stoppingIndex)
 	{
-		if(stoppingIndex <= 0 || stoppingIndex > route.getCustomers().size())
+		if(stoppingIndex < 0 || stoppingIndex >= route.getCustomers().size())
 		{
 			throw new IndexOutOfBoundsException("Evaluation of the segment cost is not possible");
 		}
@@ -319,7 +318,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		totalSegmentCost.setWaitingTime(currentCustomer.getWaitingTime());
 		totalSegmentCost.addTWViol(currentCustomer.getTwViol());
 		
-		for(int i = 1; i < stoppingIndex; i++)
+		for(int i = 1; i <= stoppingIndex; i++)
 		{
 			previousCustomer = currentCustomer;
 			currentCustomer = customers.get(i);
