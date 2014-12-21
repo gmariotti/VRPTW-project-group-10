@@ -208,12 +208,12 @@ public class MySolution extends SolutionAdapter {
 
 	}
 
-	public void print() {
+	public void print(String output) {
 		Route[] routes = this.getRoutes();
 		String solution = "";
 		for (Route route : routes) {
 			if (route == null) {
-				continue;
+				break;
 			}
 			solution += "R#" + route.getIndex() + " V#" + route.getAssignedVehicle().getVehicleNr()
 					+ " ";
@@ -221,12 +221,19 @@ public class MySolution extends SolutionAdapter {
 			for (Customer cust : customers) {
 				solution += "C#" + cust.getNumber() + " ";
 			}
+			Cost cost = route.getCost();
+			solution += "Cost=" + cost.getTotal() + " ";
+			if (cost.checkFeasible()) {
+				solution += "isFeasible ";
+			} else {
+				solution += "isNotFeasible ";
+			}
 			solution += "\n";
 		}
 		System.out.println(solution);
 		try {
 			FileWriter fw = new FileWriter(System.getProperty("user.dir")
-					+ "/output/routeOfSolution.txt", true);
+					+ output, true);
 			fw.write(solution);
 			fw.close();
 		} catch (Exception ex) {
@@ -242,7 +249,15 @@ public class MySolution extends SolutionAdapter {
 	 * @return the routes
 	 */
 	public Route[] getRoutes() {
-		return routes;
+		// to avoid an array with null elements
+		List<Route> list = new ArrayList<>();
+		for (Route route : this.routes) {
+			if (route == null) {
+				break;
+			}
+			list.add(route);
+		}
+		return list.toArray(new Route[list.size()]);
 	}
 
 	/**

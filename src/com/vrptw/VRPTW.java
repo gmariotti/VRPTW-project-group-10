@@ -49,9 +49,10 @@ public class VRPTW {
 			initialSol = new MySolution(instance);
 			objFunc = new MyObjectiveFunction(instance);
 			initialSol.generateInitialSolution();
+			objFunc.evaluate(initialSol, null);
 			
 			// temporary just to see if initialSol works
-			initialSol.print();
+			initialSol.print("/output/routeOfInitialSolution.txt");
 			
 			moveManager = new MyMoveManager(instance);
 			moveManager.setMovesType(parameters.getMovesType());
@@ -71,22 +72,7 @@ public class VRPTW {
 
 			// Show all routes, routes' vehicle and routes' customers
 			MySolution sol = searchProgram.getSolution();
-			Route[] routes = sol.getRoutes();
-			String solution = "";
-			for (Route route : routes) {
-				solution += "R#" + route.getIndex() + " V#"
-						+ route.getAssignedVehicle().getVehicleNr() + " ";
-				List<Customer> customers = route.getCustomers();
-				for (Customer cust : customers) {
-					solution += "C#" + cust.getNumber() + " ";
-				}
-				solution += "\n";
-			}
-			System.out.println(solution);
-			FileWriter fw = new FileWriter(System.getProperty("user.dir")
-					+ "/output/routeOfSolution.csv", true);
-			fw.write(solution);
-			fw.close();
+			sol.print("/output/routeOfSolution.txt");
 
 			// Show solution on solution.csv
 

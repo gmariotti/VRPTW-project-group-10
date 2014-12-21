@@ -44,61 +44,66 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 			Cost totalVarCost = new Cost();
 			double newTotal = 0.0;
 			double penalty = 0.0;
-			
+
 			Route newFirstRoute = new Route();
 			Cost firstRouteCostVariation = new Cost();
-			
+
 			Route newSecondRoute = new Route();
 			Cost secondRouteCostVariation = new Cost();
-			
-			firstRouteCostVariation = evaluateSegmentCost(firstRoute, firstRoute.indexOfCustomer(twoExchangeMove.getFirstCustomer()));
-			secondRouteCostVariation = evaluateSegmentCost(secondRoute, secondRoute.indexOfCustomer(twoExchangeMove.getSecondCustomer()));
-			
+
+			firstRouteCostVariation = evaluateSegmentCost(firstRoute,
+					firstRoute.indexOfCustomer(twoExchangeMove.getFirstCustomer()));
+			secondRouteCostVariation = evaluateSegmentCost(secondRoute,
+					secondRoute.indexOfCustomer(twoExchangeMove.getSecondCustomer()));
+
 			customers.add(twoExchangeMove.getFirstCustomer());
-			
-			for(int i = secondRoute.indexOfCustomer(twoExchangeMove.getSecondCustomer()) + 1; i < secondRoute.getCustomers().size(); i++)
-			{
+
+			for (int i = secondRoute.indexOfCustomer(twoExchangeMove.getSecondCustomer()) + 1; i < secondRoute
+					.getCustomers().size(); i++) {
 				customers.add(secondRoute.getCustomers(i));
 			}
-			
+
 			newFirstRoute.setCustomers(customers);
-			
+
 			customers.clear();
-			
+
 			customers.add(twoExchangeMove.getSecondCustomer());
-			
-			for(int i = firstRoute.indexOfCustomer(twoExchangeMove.getFirstCustomer()) + 1; i < firstRoute.getCustomers().size(); i++)
-			{
+
+			for (int i = firstRoute.indexOfCustomer(twoExchangeMove.getFirstCustomer()) + 1; i < firstRoute
+					.getCustomers().size(); i++) {
 				customers.add(firstRoute.getCustomers(i));
 			}
-			
+
 			newSecondRoute.setCustomers(customers);
-			
+
 			firstRouteCostVariation.add(evaluateRouteCost(firstRoute), true);
-			firstRouteCostVariation.setLoadViol(Math.max(0, firstRouteCostVariation.getLoad() - instance.getCapacity(0)));
-			
+			firstRouteCostVariation.setLoadViol(Math.max(0, firstRouteCostVariation.getLoad()
+					- instance.getCapacity(0)));
+
 			secondRouteCostVariation.add(evaluateRouteCost(secondRoute), true);
-			secondRouteCostVariation.setLoadViol(Math.max(0, secondRouteCostVariation.getLoad() - instance.getCapacity(0)));
-			
+			secondRouteCostVariation.setLoadViol(Math.max(0, secondRouteCostVariation.getLoad()
+					- instance.getCapacity(0)));
+
 			firstRouteCostVariation.subtract(firstRoute.getCost());
 			secondRouteCostVariation.subtract(secondRoute.getCost());
-			
+
 			totalVarCost.add(firstRouteCostVariation);
 			totalVarCost.add(secondRouteCostVariation);
-			
-			totalVarCost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
-			
+
+			totalVarCost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(),
+					currentSolution.getGamma());
+
 			newTotal = totalVarCost.getTotal() + currentSolution.getCost().getTotal();
-			
-			if(currentSolution.getObjectiveValue()[0] < newTotal)
+
+			if (currentSolution.getObjectiveValue()[0] < newTotal)
 				penalty = penalizationFactor * newTotal;
-			
-			return new double[]{newTotal + penalty, newTotal, 
-								currentSolution.getCost().getTravelTime() + totalVarCost.getTravelTime(), 
-								currentSolution.getCost().getLoadViol() + totalVarCost.getLoadViol(), 
-								currentSolution.getCost().getDurationViol() + totalVarCost.getDurationViol(), 
-								currentSolution.getCost().getTwViol() + totalVarCost.getTwViol()};		
-			} else {
+
+			return new double[] { newTotal + penalty, newTotal,
+					currentSolution.getCost().getTravelTime() + totalVarCost.getTravelTime(),
+					currentSolution.getCost().getLoadViol() + totalVarCost.getLoadViol(),
+					currentSolution.getCost().getDurationViol() + totalVarCost.getDurationViol(),
+					currentSolution.getCost().getTwViol() + totalVarCost.getTwViol() };
+		} else {
 			evaluateFullSolutionCost(currentSolution);
 
 			return new double[] { Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY,
@@ -139,15 +144,18 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 			}
 
 			cost.add(calculateEdgeCost(currentCustomer, depot), true);
-			
-			// calculate the load violation externally as it's not part of a single edge, but of the whole route
+
+			// calculate the load violation externally as it's not part of a single edge, but of the
+			// whole route
 			cost.setLoadViol(Math.max(0, cost.getLoad() - instance.getCapacity(0)));
 			// calculate the total
-			cost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
-			
+			cost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(),
+					currentSolution.getGamma());
+
 			route.setCost(cost); // finally set the total cost of the route
 
-			totalSolutionCost.add(cost); // add the cost mentioned above to the total cost of the solution
+			totalSolutionCost.add(cost); // add the cost mentioned above to the total cost of the
+											// solution
 			totalSolutionCost.addLoadViol(cost.getLoadViol());
 		}
 
@@ -216,7 +224,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		cost.setTravelTime(instance.getTravelTime(customer.getNumber(), instance.getCustomersNr()));
 
 		// this is the time in which the vehicle reaches the depot
-		cost.setReturnToDepotTime(customer.getDepartureTime() + cost.getTravelTime()); 
+		cost.setReturnToDepotTime(customer.getDepartureTime() + cost.getTravelTime());
 
 		cost.setDepotTwViol(Math.max(0, cost.getReturnToDepotTime() - depot.getEndTw()));
 		// note that I've mentioned before that the depot time window violation is included also in
@@ -269,8 +277,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 	}
 
 	/*
-	 * Evaluates the route of a cost and returns it. This cost is used just
-	 * for the segment from 
+	 * Evaluates the route of a cost and returns it. This cost is used just for the segment from
 	 */
 	private Cost evaluateRouteCost(Route route) {
 		List<Customer> customers;
@@ -292,49 +299,51 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 
 		return cost;
 	}
-	
+
 	/*
-	 * Method that quickly retrieves the cost of the unchanged part of the segment.
-	 * The route parameter is the route whose cost we're retrieving. The stopping
-	 * index is used as stopping point of the index. Note that this method implictly
-	 * assumes that we start in the depot.
+	 * Method that quickly retrieves the cost of the unchanged part of the segment. The route
+	 * parameter is the route whose cost we're retrieving. The stopping index is used as stopping
+	 * point of the index. Note that this method implictly assumes that we start in the depot.
 	 */
-	
-	private Cost evaluateSegmentCost(Route route, int stoppingIndex)
-	{
-		if(stoppingIndex <= 0 || stoppingIndex > route.getCustomers().size())
-		{
+
+	private Cost evaluateSegmentCost(Route route, int stoppingIndex) {
+		if (stoppingIndex <= 0 || stoppingIndex > route.getCustomers().size()) {
 			throw new IndexOutOfBoundsException("Evaluation of the segment cost is not possible");
 		}
-		
+
 		List<Customer> customers = route.getCustomers();
 		Customer previousCustomer;
 		Customer currentCustomer;
 		Cost totalSegmentCost = new Cost();
-		
+
 		currentCustomer = customers.get(0);
-		totalSegmentCost.setTravelTime(instance.getTravelTime(instance.getCustomersNr(), currentCustomer.getNumber()));
+		totalSegmentCost.setTravelTime(instance.getTravelTime(instance.getCustomersNr(),
+				currentCustomer.getNumber()));
 		totalSegmentCost.setLoad(currentCustomer.getLoad());
 		totalSegmentCost.setServiceTime(currentCustomer.getServiceDuration());
 		totalSegmentCost.setWaitingTime(currentCustomer.getWaitingTime());
 		totalSegmentCost.addTWViol(currentCustomer.getTwViol());
-		
-		for(int i = 1; i < stoppingIndex; i++)
-		{
+
+		for (int i = 1; i < stoppingIndex; i++) {
 			previousCustomer = currentCustomer;
 			currentCustomer = customers.get(i);
-			totalSegmentCost.setTravelTime(instance.getTravelTime(previousCustomer.getNumber(), currentCustomer.getNumber()));
+			totalSegmentCost.setTravelTime(instance.getTravelTime(previousCustomer.getNumber(),
+					currentCustomer.getNumber()));
 			totalSegmentCost.setLoad(totalSegmentCost.getLoad() + currentCustomer.getLoad());
-			totalSegmentCost.setServiceTime(totalSegmentCost.getServiceTime() + currentCustomer.getServiceDuration());
-			totalSegmentCost.setWaitingTime(totalSegmentCost.getWaitingTime() +currentCustomer.getWaitingTime());
+			totalSegmentCost.setServiceTime(totalSegmentCost.getServiceTime()
+					+ currentCustomer.getServiceDuration());
+			totalSegmentCost.setWaitingTime(totalSegmentCost.getWaitingTime()
+					+ currentCustomer.getWaitingTime());
 			totalSegmentCost.addTWViol(currentCustomer.getTwViol());
 		}
-		
+
 		// set the load violation if any
-		totalSegmentCost.setLoadViol(Math.max(0, totalSegmentCost.getLoad() - instance.getCapacity(0)));
+		totalSegmentCost.setLoadViol(Math.max(0,
+				totalSegmentCost.getLoad() - instance.getCapacity(0)));
 		// finally calculate the total
-		totalSegmentCost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
-		
+		totalSegmentCost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(),
+				currentSolution.getGamma());
+
 		return totalSegmentCost;
 	}
 }
