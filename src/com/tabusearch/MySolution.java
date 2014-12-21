@@ -196,16 +196,6 @@ public class MySolution extends SolutionAdapter {
 	 *            The MySolution we want to clone. If null, we consider the current MySolution.
 	 * @return a MySolution object
 	 */
-	public MySolution clone(MySolution solution) {
-		MySolution newSolution = new MySolution(this.instance);
-		if (solution == null) {
-			newSolution.routes = this.routes;
-		} else {
-			newSolution.routes = solution.routes;
-		}
-		return newSolution;
-
-	}
 
 	public void print() {
 		Route[] routes = this.getRoutes();
@@ -241,7 +231,15 @@ public class MySolution extends SolutionAdapter {
 	 * @return the routes
 	 */
 	public Route[] getRoutes() {
-		return routes;
+		// to avoid an array with null elements
+		List<Route> list = new ArrayList<>();
+		for (Route route : this.routes) {
+			if (route == null) {
+				break;
+			}
+			list.add(route);
+		}
+		return list.toArray(new Route[list.size()]);
 	}
 
 	/**
@@ -283,6 +281,18 @@ public class MySolution extends SolutionAdapter {
 
 	public double getGamma() {
 		return gamma;
+	}
+
+	public void setAlpha(double alpha) {
+		this.alpha = alpha;
+	}
+
+	public void setBeta(double beta) {
+		this.beta = beta;
+	}
+
+	public void setGamma(double gamma) {
+		this.gamma = gamma;
 	}
 
 	/**
@@ -383,14 +393,18 @@ public class MySolution extends SolutionAdapter {
 		this.cost = cost;
 	}
 	
+	
+	
 	public Object clone()
 	{
 		MySolution clonedSolution = new MySolution(instance);
 		List<Customer> customers;
 		int i = 0;
-		int j;
 		
 		clonedSolution.setCost(new Cost(this.cost));
+		clonedSolution.alpha = this.alpha;
+		clonedSolution.beta = this.beta;
+		clonedSolution.gamma = this.gamma;
 		
 		for(Route route : this.routes)											
 		{
@@ -404,12 +418,10 @@ public class MySolution extends SolutionAdapter {
 			clonedSolution.routes[i].setAssignedVehicle(route.getAssignedVehicle());
 			clonedSolution.routes[i].setCost(new Cost(route.getCost()));
 			
-			j = 0;
 			for(Customer customer : customers)									
 			{
 				// clone customers
-				clonedSolution.routes[i].addCustomer(new Customer(customer), j);
-				j++;
+				clonedSolution.routes[i].addCustomer(new Customer(customer), -1);
 			}
 			i++;
 		}

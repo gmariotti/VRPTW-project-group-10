@@ -13,6 +13,7 @@ import com.vrptw.*;
 public class MyObjectiveFunction implements ObjectiveFunction {
 	private static Instance	instance;
 	private MySolution		currentSolution;
+	private MyTwoExchangeMove currentMove;
 	private double			penalizationFactor;
 
 	public MyObjectiveFunction(Instance instance) {
@@ -36,68 +37,28 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		 * move, and then I subtract the cost of the routes before the move.
 		 */
 		if (move != null) {
-			MySolution sol = (MySolution) currentSolution.clone();
-			MyTwoExchangeMove twoExchangeMove = (MyTwoExchangeMove) move;
-			Route firstRoute = sol.getRoutes(twoExchangeMove.getFirstRouteIndex());
-			Route secondRoute = sol.getRoutes(twoExchangeMove.getSecondRouteIndex());
-			List<Customer> customers = new ArrayList<>();
-			Cost totalVarCost = new Cost();
-			double newTotal = 0.0;
+			currentMove = (MyTwoExchangeMove) move;
+			Cost totalVarCost;
+			Cost newTotalCost = new Cost(currentSolution.getCost());
 			double penalty = 0.0;
 			
-			Route newFirstRoute = new Route();
-			Cost firstRouteCostVariation = new Cost();
+			totalVarCost = calculateTotalCostVariation ();
 			
-			Route newSecondRoute = new Route();
-			Cost secondRouteCostVariation = new Cost();
+			newTotalCost.add(totalVarCost);
+			newTotalCost.addLoadViol(totalVarCost.getLoadViol());
+			newTotalCost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
 			
-			firstRouteCostVariation = evaluateSegmentCost(firstRoute, firstRoute.indexOfCustomer(twoExchangeMove.getFirstCustomer()));
-			secondRouteCostVariation = evaluateSegmentCost(secondRoute, secondRoute.indexOfCustomer(twoExchangeMove.getSecondCustomer()));
-			
-			customers.add(twoExchangeMove.getFirstCustomer());
-			
-			for(int i = secondRoute.indexOfCustomer(twoExchangeMove.getSecondCustomer()) + 1; i < secondRoute.getCustomers().size(); i++)
-			{
-				customers.add(secondRoute.getCustomers(i));
-			}
-			
-			newFirstRoute.setCustomers(customers);
-			
-			customers.clear();
-			
-			customers.add(twoExchangeMove.getSecondCustomer());
-			
-			for(int i = firstRoute.indexOfCustomer(twoExchangeMove.getFirstCustomer()) + 1; i < firstRoute.getCustomers().size(); i++)
-			{
-				customers.add(firstRoute.getCustomers(i));
-			}
-			
-			newSecondRoute.setCustomers(customers);
-			
-			firstRouteCostVariation.add(evaluateRouteCost(firstRoute), true);
-			firstRouteCostVariation.setLoadViol(Math.max(0, firstRouteCostVariation.getLoad() - instance.getCapacity(0)));
-			
-			secondRouteCostVariation.add(evaluateRouteCost(secondRoute), true);
-			secondRouteCostVariation.setLoadViol(Math.max(0, secondRouteCostVariation.getLoad() - instance.getCapacity(0)));
-			
-			firstRouteCostVariation.subtract(firstRoute.getCost());
-			secondRouteCostVariation.subtract(secondRoute.getCost());
-			
-			totalVarCost.add(firstRouteCostVariation);
-			totalVarCost.add(secondRouteCostVariation);
-			
-			totalVarCost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
-			
-			if(currentSolution.getObjectiveValue()[0] < totalVarCost.getTotal())
+			if(currentSolution.getObjectiveValue()[0] < newTotalCost.getTotal())
 				penalty = penalizationFactor * totalVarCost.getTotal();
 			
-			return new double[]{newTotal + penalty, newTotal, 
-								currentSolution.getCost().getTravelTime() + totalVarCost.getTravelTime(), 
-								currentSolution.getCost().getLoadViol() + totalVarCost.getLoadViol(), 
-								currentSolution.getCost().getDurationViol() + totalVarCost.getDurationViol(), 
-								currentSolution.getCost().getTwViol() + totalVarCost.getTwViol()};		
+			return new double[]{newTotalCost.getTotal() + penalty, 
+								newTotalCost.getTotal(), 
+								newTotalCost.getTravelTime(), 
+								newTotalCost.getLoadViol(), 
+								newTotalCost.getDurationViol(), 
+								newTotalCost.getTwViol()};		
 			} else {
-			evaluateFullSolutionCost(currentSolution);
+			evaluateFullSolutionCost();
 
 			return new double[] { Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY,
 					currentSolution.getCost().getTravelTime(),
@@ -112,8 +73,8 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 	 * class whenever a null move is supplied. Actually this method determines the cost of the Cost
 	 * object inside the MySolution object
 	 */
-	private void evaluateFullSolutionCost(MySolution solution) {
-		Route[] routes = solution.getRoutes();
+	private void evaluateFullSolutionCost() {
+		Route[] routes = currentSolution.getRoutes();
 		Depot depot = instance.getDepot();
 		List<Customer> customers;
 		Customer previousCustomer;
@@ -144,13 +105,15 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 			// calculate the total
 			cost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
 			
-			route.setCost(cost); // finally set the total cost of the route
+			route.setCost(new Cost(cost)); // finally set the total cost of the route
 
 			totalSolutionCost.add(cost); // add the cost mentioned above to the total cost of the solution
 			totalSolutionCost.addLoadViol(cost.getLoadViol());
 		}
 
-		solution.setCost(totalSolutionCost);
+		
+		totalSolutionCost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
+		currentSolution.setCost(new Cost(totalSolutionCost));
 	}
 
 	/*
@@ -225,77 +188,67 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		return cost;
 	}
 
-	/*
-	 * This is a copy of the method used in the MyTwoExchangeMove class, with a different objective
-	 * function evaluation.
-	 */
-
-	private void evaluateNewRoutes(Route routeFirst, Route routeSecond, Customer firstCustomer,
-			Customer secondCustomer) {
-		List<Customer> newCustomersFirst = new ArrayList<>();
-		List<Customer> newCustomersSecond = new ArrayList<>();
-		List<Customer> oldCustomersFirst = routeFirst.getCustomers();
-		List<Customer> oldCustomersSecond = routeSecond.getCustomers();
-
-		// scan the first route customers before the customer of the move
-		for (int i = 0; i < oldCustomersFirst.indexOf(firstCustomer); i++) {
-			Customer tmp = oldCustomersFirst.get(i);
-			newCustomersFirst.add(tmp);
+	private Cost calculateTotalCostVariation ()
+	{
+		Route firstRoute = currentSolution.getRoutes(currentMove.getFirstRouteIndex());
+		Route secondRoute = currentSolution.getRoutes(currentMove.getSecondRouteIndex());
+		int firstCustomerIndex = firstRoute.indexOfCustomer(currentMove.getFirstCustomer());
+		int secondCustomerIndex = secondRoute.indexOfCustomer(currentMove.getSecondCustomer());
+		List<Customer> customers = new ArrayList<>();
+		Cost firstRouteCostVariation = new Cost();
+		Cost secondRouteCostVariation = new Cost();
+		Cost cost;
+		Route newFirstRoute = new Route();
+		Route newSecondRoute = new Route();
+		
+		firstRouteCostVariation = evaluateSegmentCost(firstRoute, firstCustomerIndex);
+		secondRouteCostVariation = evaluateSegmentCost(secondRoute, secondCustomerIndex);
+		
+		customers.add(currentMove.getFirstCustomer());
+		
+		for(int i = secondCustomerIndex + 1; i < secondRoute.getCustomers().size(); i++)
+		{
+			customers.add(new Customer(secondRoute.getCustomers(i)));
 		}
-		newCustomersFirst.add(firstCustomer);
-		// scan the second route customers after the customer of the move
-		for (int i = (oldCustomersSecond.indexOf(secondCustomer) + 1); i < oldCustomersSecond
-				.size(); i++) {
-			Customer tmp = oldCustomersSecond.get(i);
-			newCustomersFirst.add(tmp);
+		
+		newFirstRoute.setCustomers(customers);
+		
+		customers.clear();
+		
+		customers.add(currentMove.getSecondCustomer());
+		
+		for(int i = firstCustomerIndex + 1; i < firstRoute.getCustomers().size(); i++)
+		{
+			customers.add(new Customer(firstRoute.getCustomers(i)));
 		}
-
-		// scan the second route customers before the customer of the move
-		for (int i = 0; i < oldCustomersSecond.indexOf(secondCustomer); i++) {
-			Customer tmp = oldCustomersSecond.get(i);
-			newCustomersSecond.add(tmp);
-		}
-		newCustomersSecond.add(secondCustomer);
-		// scan the first route customers after the customer of the move
-		for (int i = (oldCustomersFirst.indexOf(firstCustomer) + 1); i < oldCustomersFirst.size(); i++) {
-			Customer tmp = oldCustomersFirst.get(i);
-			newCustomersSecond.add(tmp);
-		}
-
-		// set the new customers list for each route and evaluate the new cost
-		routeFirst.setCustomers(newCustomersFirst);
-		routeSecond.setCustomers(newCustomersSecond);
-	}
-
-	/*
-	 * Evaluates the route of a cost and returns it. This cost is used just
-	 * for the segment from 
-	 */
-	private Cost evaluateRouteCost(Route route) {
-		List<Customer> customers;
-		Customer previousCustomer;
-		Customer currentCustomer;
-		Depot depot = instance.getDepot();
-		Cost cost = new Cost();
-
-		customers = route.getCustomers();
-
-		currentCustomer = customers.get(0);
-		for (int i = 1; i < customers.size(); i++) {
-			previousCustomer = currentCustomer;
-			currentCustomer = customers.get(i);
-			cost.add(calculateEdgeCost(previousCustomer, currentCustomer));
-		}
-
-		cost.add(calculateEdgeCost(currentCustomer, depot), true);
-
+		
+		newSecondRoute.setCustomers(customers);
+		
+		// get the full cost of the new first and second routes
+		firstRouteCostVariation.add(evaluateRouteCost(firstRoute), true);
+		secondRouteCostVariation.add(evaluateRouteCost(secondRoute), true);
+		
+		// get the cost variation for the first and second routes respectively
+		firstRouteCostVariation.subtract(firstRoute.getCost());
+		secondRouteCostVariation.subtract(secondRoute.getCost());
+		
+		// create the cost object that carries the total variation of the current two exchange move
+		cost = new Cost(firstRouteCostVariation);
+		cost.add(secondRouteCostVariation);
+		
+		// add the contribution in load violation from the second route as well
+		cost.addLoadViol(secondRouteCostVariation.getLoadViol());
+		
+		// finally calculate the total field of the cost object
+		cost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
+		
 		return cost;
 	}
 	
 	/*
 	 * Method that quickly retrieves the cost of the unchanged part of the segment.
 	 * The route parameter is the route whose cost we're retrieving. The stopping
-	 * index is used as stopping point of the index. Note that this method implictly
+	 * index is used as stopping point of the index. Note that this method implicitly
 	 * assumes that we start in the depot.
 	 */
 	
@@ -329,11 +282,32 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 			totalSegmentCost.addTWViol(currentCustomer.getTwViol());
 		}
 		
-		// set the load violation if any
-		totalSegmentCost.setLoadViol(Math.max(0, totalSegmentCost.getLoad() - instance.getCapacity(0)));
-		// finally calculate the total
-		totalSegmentCost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
-		
 		return totalSegmentCost;
+	}
+	
+	/*
+	 * Evaluates the route of a cost and returns it. This cost is used just
+	 * to calculate the cost introduced from a path added in a route modified
+	 * by the two exchange move.
+	 */
+	private Cost evaluateRouteCost(Route route) {
+		List<Customer> customers;
+		Customer previousCustomer;
+		Customer currentCustomer;
+		Depot depot = instance.getDepot();
+		Cost cost = new Cost();
+
+		customers = route.getCustomers();
+
+		currentCustomer = customers.get(0);
+		for (int i = 1; i < customers.size(); i++) {
+			previousCustomer = currentCustomer;
+			currentCustomer = customers.get(i);
+			cost.add(calculateEdgeCost(previousCustomer, currentCustomer));
+		}
+
+		cost.add(calculateEdgeCost(currentCustomer, depot), true);
+
+		return cost;
 	}
 }
