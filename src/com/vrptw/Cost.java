@@ -66,7 +66,6 @@ public class Cost {
 	 */
 
 	public void add(Cost cost) {
-		this.total += cost.total;
 		this.travelTime += cost.travelTime;
 		this.load += cost.load;
 		this.serviceTime += cost.serviceTime;
@@ -87,7 +86,6 @@ public class Cost {
 	 */
 
 	public void add(Cost cost, boolean setReturnToDepotTime) {
-		this.total += cost.total;
 		this.travelTime += cost.travelTime;
 		this.load += cost.load;
 		this.serviceTime += cost.serviceTime;
@@ -108,12 +106,12 @@ public class Cost {
 	 *            - The cost to subtract to the calling object
 	 */
 	public void subtract(Cost cost) {
-		this.total -= cost.total;
 		this.travelTime -= cost.travelTime;
 		this.load -= cost.load;
 		this.serviceTime -= cost.serviceTime;
 		this.waitingTime -= cost.waitingTime;
 		
+		this.loadViol -= cost.loadViol;
 		this.twViol -= cost.twViol;
 		this.depotTwViol -= cost.depotTwViol;
 	}
