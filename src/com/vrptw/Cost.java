@@ -256,4 +256,19 @@ public class Cost {
 		this.depotTwViol = depotTwViol;
 	}
 
+	public void reset() {
+		total = 0;
+		travelTime = 0;
+		load = 0;
+		serviceTime = 0;
+		waitingTime = 0;
+
+		loadViol = 0;
+		durationViol = 0;
+		twViol = 0;
+
+		returnToDepotTime = 0;
+		depotTwViol = 0;
+	}
+
 }
