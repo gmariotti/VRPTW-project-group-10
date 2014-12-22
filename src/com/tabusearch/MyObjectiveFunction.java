@@ -41,7 +41,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 			Cost totalVarCost;
 			Cost newTotalCost = new Cost(currentSolution.getCost());
 			double penalty = 0.0;
-			
+
 			totalVarCost = calculateTotalCostVariation ();
 			
 			newTotalCost.add(totalVarCost);
@@ -99,15 +99,18 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 			}
 
 			cost.add(calculateEdgeCost(currentCustomer, depot), true);
-			
-			// calculate the load violation externally as it's not part of a single edge, but of the whole route
+
+			// calculate the load violation externally as it's not part of a single edge, but of the
+			// whole route
 			cost.setLoadViol(Math.max(0, cost.getLoad() - instance.getCapacity(0)));
 			// calculate the total
+
 			cost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
 			
 			route.setCost(new Cost(cost)); // finally set the total cost of the route
 
-			totalSolutionCost.add(cost); // add the cost mentioned above to the total cost of the solution
+			totalSolutionCost.add(cost); // add the cost mentioned above to the total cost of the
+											// solution
 			totalSolutionCost.addLoadViol(cost.getLoadViol());
 		}
 
@@ -178,7 +181,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		cost.setTravelTime(instance.getTravelTime(customer.getNumber(), instance.getCustomersNr()));
 
 		// this is the time in which the vehicle reaches the depot
-		cost.setReturnToDepotTime(customer.getDepartureTime() + cost.getTravelTime()); 
+		cost.setReturnToDepotTime(customer.getDepartureTime() + cost.getTravelTime());
 
 		cost.setDepotTwViol(Math.max(0, cost.getReturnToDepotTime() - depot.getEndTw()));
 		// note that I've mentioned before that the depot time window violation is included also in
@@ -244,28 +247,28 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		
 		return cost;
 	}
-	
+
 	/*
 	 * Method that quickly retrieves the cost of the unchanged part of the segment.
 	 * The route parameter is the route whose cost we're retrieving. The stopping
 	 * index is used as stopping point of the index. Note that this method implicitly
 	 * assumes that we start in the depot.
 	 */
-	
 	private Cost evaluateSegmentCost(Route route, int stoppingIndex)
 	{
 		if(stoppingIndex < 0 || stoppingIndex >= route.getCustomers().size())
 		{
 			throw new IndexOutOfBoundsException("Evaluation of the segment cost is not possible");
 		}
-		
+
 		List<Customer> customers = route.getCustomers();
 		Customer previousCustomer;
 		Customer currentCustomer;
 		Cost totalSegmentCost = new Cost();
-		
+
 		currentCustomer = customers.get(0);
-		totalSegmentCost.setTravelTime(instance.getTravelTime(instance.getCustomersNr(), currentCustomer.getNumber()));
+		totalSegmentCost.setTravelTime(instance.getTravelTime(instance.getCustomersNr(),
+				currentCustomer.getNumber()));
 		totalSegmentCost.setLoad(currentCustomer.getLoad());
 		totalSegmentCost.setServiceTime(currentCustomer.getServiceDuration());
 		totalSegmentCost.setWaitingTime(currentCustomer.getWaitingTime());
@@ -275,13 +278,16 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		{
 			previousCustomer = currentCustomer;
 			currentCustomer = customers.get(i);
-			totalSegmentCost.setTravelTime(instance.getTravelTime(previousCustomer.getNumber(), currentCustomer.getNumber()));
+			totalSegmentCost.setTravelTime(instance.getTravelTime(previousCustomer.getNumber(),
+					currentCustomer.getNumber()));
 			totalSegmentCost.setLoad(totalSegmentCost.getLoad() + currentCustomer.getLoad());
-			totalSegmentCost.setServiceTime(totalSegmentCost.getServiceTime() + currentCustomer.getServiceDuration());
-			totalSegmentCost.setWaitingTime(totalSegmentCost.getWaitingTime() +currentCustomer.getWaitingTime());
+			totalSegmentCost.setServiceTime(totalSegmentCost.getServiceTime()
+					+ currentCustomer.getServiceDuration());
+			totalSegmentCost.setWaitingTime(totalSegmentCost.getWaitingTime()
+					+ currentCustomer.getWaitingTime());
 			totalSegmentCost.addTWViol(currentCustomer.getTwViol());
 		}
-		
+
 		return totalSegmentCost;
 	}
 	

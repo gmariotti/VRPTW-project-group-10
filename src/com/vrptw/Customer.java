@@ -62,6 +62,12 @@ public class Customer {
 		this.combinationsList = customer.combinationsList;
 	}
 
+	public double getDistance(double xCoordinate, double yCoordinate) {
+		double distance = Math.sqrt(Math.pow(xCoordinate - this.getXCoordinate(), 2)
+				+ Math.pow(yCoordinate - this.getYCoordinate(), 2));
+		return distance;
+	}
+
 	/**
 	 * This return a string with formated customer data
 	 * 
