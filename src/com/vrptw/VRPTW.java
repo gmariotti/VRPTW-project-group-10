@@ -10,6 +10,7 @@ import java.util.List;
 import org.coinor.opents.SimpleTabuList;
 import org.coinor.opents.TabuList;
 
+import com.tabusearch.Granular;
 import com.tabusearch.MyMoveManager;
 import com.tabusearch.MyObjectiveFunction;
 import com.tabusearch.MySearchProgram;
@@ -52,7 +53,7 @@ public class VRPTW {
 			objFunc.evaluate(initialSol, null);
 			
 			// temporary just to see if initialSol works
-			initialSol.print("/output/routeOfInitialSolution.txt");
+			initialSol.print();
 			
 			moveManager = new MyMoveManager(instance);
 			moveManager.setMovesType(parameters.getMovesType());
@@ -65,6 +66,7 @@ public class VRPTW {
 					tabuList, false, outPrintStream);
 
 			// Start solving
+			Granular.setGranularity(initialSol);
 			searchProgram.tabuSearch.setIterationsToGo(parameters.getIterations());
 			searchProgram.tabuSearch.startSolving();
 
@@ -72,7 +74,7 @@ public class VRPTW {
 
 			// Show all routes, routes' vehicle and routes' customers
 			MySolution sol = searchProgram.getSolution();
-			sol.print("/output/routeOfSolution.txt");
+			sol.print();
 
 			// Show solution on solution.csv
 

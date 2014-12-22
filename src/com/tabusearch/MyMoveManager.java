@@ -92,9 +92,13 @@ public class MyMoveManager implements MoveManager {
 						// if Granular Attribute and distance with
 						// customer.calculateDistance(otherCustomer)
 						Customer otherCustomer = otherCustomers.get(l);
-						Move move = new MyTwoExchangeMove(MyMoveManager.getInstance(), customer,
-								otherCustomer, i, k);
-						moves.add(move);
+						if (customer.getDistance(otherCustomer.getXCoordinate(),
+								otherCustomer.getYCoordinate()) < Granular
+								.getGranularityThreshold()) {
+							Move move = new MyTwoExchangeMove(MyMoveManager.getInstance(),
+									customer, otherCustomer, i, k);
+							moves.add(move);
+						}
 					}
 				}
 			}
