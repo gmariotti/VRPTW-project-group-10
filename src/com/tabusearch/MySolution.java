@@ -25,9 +25,9 @@ public class MySolution extends SolutionAdapter {
 	private Depot		depot;
 	private Cost		cost;
 
-	private double		alpha;
-	private double		beta;
-	private double		gamma;
+	private double		alpha				= 1;
+	private double		beta				= 1;
+	private double		gamma				= 1;
 
 	/**
 	 * Default constructor for MySolution Class. It does nothing. If you want to generate an initial
@@ -77,11 +77,11 @@ public class MySolution extends SolutionAdapter {
 
 		Boolean stop = Boolean.FALSE; // The stopping condition will be true when there are no
 										// customers left.
-		
+
 		/*
 		 * Each iteration is the creation of a route
 		 */
-		while (!stop) {			
+		while (!stop) {
 			Depot depot = this.getDepot();
 			List<Double> customersCost = new ArrayList<>();
 			Vehicle vehicle = new Vehicle(vehicleNumber, this.getMaxVehicleCapacity(), 0);
@@ -112,9 +112,9 @@ public class MySolution extends SolutionAdapter {
 			 * Iterate starting from the last customer added
 			 */
 			Boolean full = Boolean.FALSE;
-			
+
 			while (!full || customers.size() > 0) {
-				
+
 				customersCost = new ArrayList<>();
 				for (Customer customer : customers) {
 					// evaluate distance
@@ -218,9 +218,9 @@ public class MySolution extends SolutionAdapter {
 	 * @return a MySolution object
 	 */
 
-	public void print(String output) {
+	public void print() {
 		Route[] routes = this.getRoutes();
-		String solution = "";
+		String solution = "\n";
 		for (Route route : routes) {
 			if (route == null) {
 				break;
@@ -241,13 +241,6 @@ public class MySolution extends SolutionAdapter {
 			solution += "\n";
 		}
 		System.out.println(solution);
-		try {
-			FileWriter fw = new FileWriter(System.getProperty("user.dir") + output, true);
-			fw.write(solution);
-			fw.close();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
 	}
 
 	public Cost getCost() {
@@ -419,34 +412,41 @@ public class MySolution extends SolutionAdapter {
 	public void setCost(Cost cost) {
 		this.cost = cost;
 	}
-	
-	
-	
-	public Object clone()
-	{
-		MySolution clonedSolution = new MySolution(instance);
+
+	public Object clone() {
+		MySolution clonedSolution = (MySolution) super.clone();
+
+		clonedSolution.instance = instance;
+		clonedSolution.maxVehicleNumber = instance.getVehiclesNr();
+		clonedSolution.maxVehicleCapacity = instance.getVehicleCapacity();
+		clonedSolution.customersNumber = instance.getCustomersNr();
+		clonedSolution.distances = instance.getDistances();
+		clonedSolution.depot = instance.getDepot();
+		clonedSolution.routes = new Route[this.maxVehicleNumber];
+		clonedSolution.cost = new Cost();
+
 		List<Customer> customers;
 		int i = 0;
-		
+
 		clonedSolution.setCost(new Cost(this.cost));
 		clonedSolution.alpha = this.alpha;
 		clonedSolution.beta = this.beta;
 		clonedSolution.gamma = this.gamma;
-		
-		for(Route route : this.routes)											
-		{
-			if(route == null) { break; }
+
+		for (Route route : this.routes) {
+			if (route == null) {
+				break;
+			}
 			customers = route.getCustomers();
-			
+
 			clonedSolution.routes[i] = new Route();
 			// clone route information
 			clonedSolution.routes[i].setIndex(route.getIndex());
 			clonedSolution.routes[i].setDepot(clonedSolution.depot);
 			clonedSolution.routes[i].setAssignedVehicle(route.getAssignedVehicle());
 			clonedSolution.routes[i].setCost(new Cost(route.getCost()));
-			
-			for(Customer customer : customers)									
-			{
+
+			for (Customer customer : customers) {
 				// clone customers
 				clonedSolution.routes[i].addCustomer(new Customer(customer), -1);
 			}

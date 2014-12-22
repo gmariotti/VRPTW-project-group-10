@@ -50,7 +50,26 @@ public class MyTwoExchangeMove implements Move {
 		// create the new routes with the new cost for each one
 		evaluateNewRoutes(routeFirst, routeSecond, this.getFirstCustomer(),
 				this.getSecondCustomer());
-		// evaluate the cost variation
+		evaluateCostVariation(sol, routeFirst, routeSecond, costFirstRoute, costSecondRoute);
+	}
+
+	/**
+	 * Update the solution with the new cost given by the two new routes
+	 * 
+	 * @param sol
+	 * @param newRouteFirst
+	 * @param newRouteSecond
+	 * @param oldCostFirstRoute
+	 * @param oldCostSecondRoute
+	 */
+	private void evaluateCostVariation(MySolution sol, Route newRouteFirst, Route newRouteSecond,
+			Cost oldCostFirstRoute, Cost oldCostSecondRoute) {
+		Cost solCost = sol.getCost();
+		solCost.subtract(oldCostFirstRoute);
+		solCost.subtract(oldCostSecondRoute);
+		solCost.add(newRouteFirst.getCost());
+		solCost.add(newRouteSecond.getCost());
+		solCost.calculateTotal(sol.getAlpha(), sol.getBeta(), sol.getGamma());
 	}
 
 	/**
@@ -101,9 +120,9 @@ public class MyTwoExchangeMove implements Move {
 
 		// set the new customers list for each route and evaluate the new cost
 		routeFirst.setCustomers(newCustomersFirst);
-		// objective function evaluation
+		routeFirst.evaluateRoute();
 		routeSecond.setCustomers(newCustomersSecond);
-		// objective or route
+		routeSecond.evaluateRoute();
 	}
 
 	/**
