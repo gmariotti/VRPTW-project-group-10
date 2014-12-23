@@ -199,5 +199,60 @@ public class Route {
 	public int indexOfCustomer(Customer customer) {
 		return customers.indexOf(customer);
 	}
-
+	
+	/**
+	 * Method that allows the calculation of the cost of a route. Not perfect yet as it
+	 * doesn't allow the modification of the parameters alpha, beta and gamma. Also the
+	 * max vehicle capacity has to be passed as parameters.
+	 * @param maxAllowedLoad
+	 * @return
+	 */
+	
+	public void calculateCost(double maxAllowedLoad)
+	{
+		Cost cost = new Cost();
+		Customer previousCustomer;
+		Customer currentCustomer = customers.get(0);
+		
+		// this should be fixed by adding a getDistance method to the depot
+		cost.setTravelTime(currentCustomer.getDistance(depot.getXCoordinate(), depot.getYCoordinate()));
+		cost.setLoad(currentCustomer.getLoad());
+		cost.setServiceTime(currentCustomer.getServiceDuration());
+		
+		currentCustomer.setArriveTime(depot.getStartTw() + cost.getTravelTime());
+		
+		currentCustomer.setWaitingTime(Math.max(0, currentCustomer.getStartTw() - currentCustomer.getArriveTime()));
+		cost.setWaitingTime(currentCustomer.getWaitingTime());
+		
+		currentCustomer.setTwViol(Math.max(0, currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
+		cost.addTWViol(currentCustomer.getTwViol());	
+		
+		for(int i = 1; i < customers.size(); i++)
+		{
+			previousCustomer = currentCustomer;
+			currentCustomer = customers.get(i);
+			
+			cost.setTravelTime(cost.getTravelTime() + previousCustomer.getDistance(currentCustomer.getXCoordinate(), currentCustomer.getYCoordinate()));
+			cost.setLoad(cost.getLoad() + currentCustomer.getLoad());
+			cost.setServiceTime(cost.getServiceTime() + currentCustomer.getServiceDuration());
+			
+			currentCustomer.setArriveTime(previousCustomer.getDepartureTime() + cost.getTravelTime());
+			
+			currentCustomer.setWaitingTime(Math.max(0, currentCustomer.getStartTw() - currentCustomer.getArriveTime()));
+			cost.setWaitingTime(cost.getWaitingTime() + currentCustomer.getWaitingTime());
+			
+			currentCustomer.setTwViol(Math.max(0, currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
+			cost.addTWViol(cost.getTwViol() + currentCustomer.getTwViol());
+		}
+		
+		cost.setTravelTime(cost.getTravelTime() + currentCustomer.getDistance(depot.getXCoordinate(), depot.getYCoordinate()));
+		cost.setReturnToDepotTime(cost.getTravelTime());
+		cost.setDepotTwViol(Math.max(0, cost.getReturnToDepotTime() - depot.getEndTw()));
+		cost.addTWViol(cost.getTwViol() + cost.getDepotTwViol());
+		
+		cost.setLoadViol(Math.max(0, cost.getLoad() - maxAllowedLoad));
+		cost.calculateTotal(1, 1, 1);
+		
+		this.setCost(cost);
+	}
 }
