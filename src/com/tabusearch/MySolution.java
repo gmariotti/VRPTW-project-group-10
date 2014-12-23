@@ -3,7 +3,6 @@
  */
 package com.tabusearch;
 
-import java.io.FileWriter;
 import java.util.*;
 
 import org.coinor.opents.SolutionAdapter;
@@ -280,6 +279,7 @@ public class MySolution extends SolutionAdapter {
 			}
 			solution += "\n";
 		}
+		solution += "The total cost is: " + this.cost.getTotal();
 		System.out.println(solution);
 	}
 
@@ -328,7 +328,7 @@ public class MySolution extends SolutionAdapter {
 	 *            the position in which as to be set
 	 */
 	public void setRoutes(Route route, int index) {
-		this.routes[index] = route;
+		this.routes[index] = new Route(route);
 	}
 
 	public double getAlpha() {

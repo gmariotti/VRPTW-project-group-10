@@ -41,9 +41,9 @@ public class Instance {
 
 	/**
 	 * Read from file the problem data: D and Q, customers data and depots data. After the variables
-	 * are populated calculates the distances, assign customers to depot and calculates angles
+	 * are populated calculates the distances and assign customers to depot.
 	 * 
-	 * @param filename
+	 * @param filename - The name in the input directory from which to read the data.
 	 */
 	public void populateFromHombergFile(String filename) {
 		try {
