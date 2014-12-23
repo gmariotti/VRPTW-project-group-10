@@ -83,7 +83,6 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		Cost cost;
 
 		for (Route route : routes) {
-			if(route == null) { break; }
 			route.getCost().reset(); // reset the cost of the route for the calculation
 			customers = route.getCustomers();
 

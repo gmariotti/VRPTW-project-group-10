@@ -20,7 +20,7 @@ public class Parameters {
 		outputFileName = currDir + "/output/solutions.csv";
 		movesType = MovesType.TWO_EXCHANGE;
 		precision = 1E-2;
-		iterations = 1000;
+		iterations = 10000;
 		startClient = -1;
 		tabuTenure = -1;
 		randomSeed = -1;

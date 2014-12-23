@@ -93,7 +93,7 @@ public class MyTwoExchangeMove implements Move {
 		List<Customer> oldCustomersFirst = routeFirst.getCustomers();
 		List<Customer> oldCustomersSecond = routeSecond.getCustomers();
 
-		// scan the first route customers before the customer of the move
+		// scan the first route customers that are before the customer of the move
 		for (int i = 0; i < oldCustomersFirst.indexOf(firstCustomer); i++) {
 			Customer tmp = oldCustomersFirst.get(i);
 			newCustomersFirst.add(tmp);
@@ -120,9 +120,9 @@ public class MyTwoExchangeMove implements Move {
 
 		// set the new customers list for each route and evaluate the new cost
 		routeFirst.setCustomers(newCustomersFirst);
-		routeFirst.evaluateRoute();
+		routeFirst.calculateCost(routeFirst.getAssignedVehicle().getCapacity());
 		routeSecond.setCustomers(newCustomersSecond);
-		routeSecond.evaluateRoute();
+		routeSecond.calculateCost(routeSecond.getAssignedVehicle().getCapacity());
 	}
 
 	/**
