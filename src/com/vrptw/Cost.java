@@ -140,8 +140,13 @@ public class Cost {
 		this.durationViol += durationviol;
 	}
 
-	public void addTWViol(double TWviol) {
+	public void addTwViol(double TWviol) {
 		this.twViol += TWviol;
+	}
+	
+	public void addDepotTwViol(double depotTwViol)
+	{
+		this.depotTwViol += depotTwViol;
 	}
 
 	public void addTravel(double cost) {

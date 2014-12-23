@@ -3,13 +3,8 @@
  */
 package com.vrptw;
 
-import java.io.FileWriter;
 import java.io.PrintStream;
-import java.util.List;
-
 import org.coinor.opents.SimpleTabuList;
-import org.coinor.opents.TabuList;
-
 import com.tabusearch.Granular;
 import com.tabusearch.MyMoveManager;
 import com.tabusearch.MyObjectiveFunction;

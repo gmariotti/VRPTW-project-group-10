@@ -3,7 +3,6 @@ package com.vrptw;
 import com.tabusearch.MovesType;
 
 public class Parameters {
-	@SuppressWarnings("unused")
 	private MovesType	movesType;
 	private String		inputFileName;
 	private String		outputFileName;
