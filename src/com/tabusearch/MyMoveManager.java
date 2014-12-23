@@ -32,8 +32,9 @@ public class MyMoveManager implements MoveManager {
 		MySolution mySol = (MySolution) solution;
 
 		switch (this.getMovesType()) {
-		case SWAP:
-			return getSwapMoves(mySol);
+		/*
+		 * case SWAP: return getSwapMoves(mySol);
+		 */
 		case TWO_EXCHANGE:
 			return getTwoExchangeMoves(mySol);
 		default:
@@ -85,19 +86,22 @@ public class MyMoveManager implements MoveManager {
 				Customer customer = customers.get(j);
 				// generate moves to all other routes
 				// avoiding reconsider previous route
-				for (int k = i + 1; k < routes.length; k++) {
-					// scan all customers of route k
-					List<Customer> otherCustomers = routes[k].getCustomers();
-					for (int l = 0; l < otherCustomers.size(); l++) {
-						// if Granular Attribute and distance with
-						// customer.calculateDistance(otherCustomer)
-						Customer otherCustomer = otherCustomers.get(l);
-						if (customer.getDistance(otherCustomer.getXCoordinate(),
-								otherCustomer.getYCoordinate()) < Granular
-								.getGranularityThreshold()) {
-							Move move = new MyTwoExchangeMove(MyMoveManager.getInstance(),
-									customer, otherCustomer, i, k);
-							moves.add(move);
+				for (int k = 0; k < routes.length; k++) {
+					// to avoid the same route
+					if (i != k) {
+						// scan all customers of route k
+						List<Customer> otherCustomers = routes[k].getCustomers();
+						for (int l = 0; l < otherCustomers.size(); l++) {
+							// if Granular Attribute and distance with
+							// customer.calculateDistance(otherCustomer)
+							Customer otherCustomer = otherCustomers.get(l);
+							if (customer.getDistance(otherCustomer.getXCoordinate(),
+									otherCustomer.getYCoordinate()) < Granular
+									.getGranularityThreshold()) {
+								Move move = new MyTwoExchangeMove(MyMoveManager.getInstance(),
+										customer, otherCustomer, i, k);
+								moves.add(move);
+							}
 						}
 					}
 				}
