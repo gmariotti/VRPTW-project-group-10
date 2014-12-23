@@ -24,7 +24,7 @@ public class MySearchProgram implements TabuSearchListener {
 	private Instance	instance;
 	private Route[]		feasibleRoutes; // stores the routes of the feasible solution
 	private Cost		feasibleCost;	// stores the total cost of the feasible solution
-	private Route[]		bestRoutes;	// stores the routes of the best solution
+	private Route[]		bestRoutes;		// stores the routes of the best solution
 	private Cost		bestCost;		// stores the total cost of the best solution
 	private Route[]		currentRoutes;	// stores the routes of the current solution
 	private Cost		currentCost;	// stores the total cost of the current solution
@@ -42,6 +42,7 @@ public class MySearchProgram implements TabuSearchListener {
 		this.instance = instance;
 		MySearchProgram.setIterationsDone(0);
 		tabuSearch.addTabuSearchListener(this);
+		solution = (MySolution) initialSol;
 		// tabuSearch.addTabuSearchListener((MyTabuList)tabuList);
 	}
 
@@ -87,14 +88,20 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void newBestSolutionFound(TabuSearchEvent e) {
-		solution = (MySolution) tabuSearch.getBestSolution();
-		this.setBestRoutes(solution.getRoutes());
-		double[] objectiveValue = solution.getObjectiveValue();
-		if (objectiveValue == null) {
-			System.err.println("ObjectiveValue equals to null into newBestSolutionFound");
-			System.exit(0);
-		}
-		this.setBestCost(getCostFromObjective(objectiveValue));
+		System.out.println("Iteration done: " + iterationsDone);
+		
+		solution.print();
+		System.out.println("Cost with penalty: " + solution.getObjectiveValue()[0]);
+		System.out.println("Cost without penalty: " + solution.getObjectiveValue()[1]);
+		
+//		solution = (MySolution) tabuSearch.getBestSolution();
+//		this.setBestRoutes(solution.getRoutes());
+//		double[] objectiveValue = solution.getObjectiveValue();
+//		if (objectiveValue == null) {
+//			System.err.println("ObjectiveValue equals to null into newBestSolutionFound");
+//			System.exit(0);
+//		}
+//		this.setBestCost(getCostFromObjective(objectiveValue));
 		// bestIndex = tabuSearch.getIterationsCompleted() + 1;
 
 	}
@@ -140,8 +147,8 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void unimprovingMoveMade(TabuSearchEvent e) {
-		// TODO Auto-generated method stub
-
+//		System.out.println("Unimproving Move made:");
+//		((MySolution)tabuSearch.getCurrentSolution()).print();
 	}
 
 	/*
@@ -151,8 +158,8 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void improvingMoveMade(TabuSearchEvent e) {
-		// TODO Auto-generated method stub
-
+//		System.out.println("Improving Move made:" );
+//		((MySolution)tabuSearch.getCurrentSolution()).print();
 	}
 
 	/*
@@ -164,7 +171,6 @@ public class MySearchProgram implements TabuSearchListener {
 	@Override
 	public void noChangeInValueMoveMade(TabuSearchEvent e) {
 		// TODO Auto-generated method stub
-
 	}
 
 	/**

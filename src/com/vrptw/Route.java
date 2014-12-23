@@ -157,7 +157,7 @@ public class Route {
 	}
 
 	public void setCustomers(List<Customer> customers) {
-		this.customers = customers;
+		this.customers = new ArrayList<>(customers);
 	}
 
 	/**
@@ -225,7 +225,7 @@ public class Route {
 		cost.setWaitingTime(currentCustomer.getWaitingTime());
 		
 		currentCustomer.setTwViol(Math.max(0, currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
-		cost.addTWViol(currentCustomer.getTwViol());	
+		cost.addTwViol(currentCustomer.getTwViol());	
 		
 		for(int i = 1; i < customers.size(); i++)
 		{
@@ -242,17 +242,38 @@ public class Route {
 			cost.setWaitingTime(cost.getWaitingTime() + currentCustomer.getWaitingTime());
 			
 			currentCustomer.setTwViol(Math.max(0, currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
-			cost.addTWViol(cost.getTwViol() + currentCustomer.getTwViol());
+			cost.addTwViol(cost.getTwViol() + currentCustomer.getTwViol());
 		}
 		
 		cost.setTravelTime(cost.getTravelTime() + currentCustomer.getDistance(depot.getXCoordinate(), depot.getYCoordinate()));
 		cost.setReturnToDepotTime(cost.getTravelTime());
 		cost.setDepotTwViol(Math.max(0, cost.getReturnToDepotTime() - depot.getEndTw()));
-		cost.addTWViol(cost.getTwViol() + cost.getDepotTwViol());
+		cost.addTwViol(cost.getTwViol() + cost.getDepotTwViol());
 		
 		cost.setLoadViol(Math.max(0, cost.getLoad() - maxAllowedLoad));
 		cost.calculateTotal(1, 1, 1);
 		
 		this.setCost(cost);
+	}
+	
+	/**
+	 * 	Method that creates a route object containing only the fixed data of
+	 * route.
+	 * @return A Route object with the same index, assigned vehicle and depot
+	 * as the calling object.
+	 */
+	public Route copyRouteInformation() {
+		Route route = new Route();
+		
+		route.index = this.index;
+		
+		/*
+		 *   Passing directly the depot reference instead of a copy is safe
+		 *  as the depot object isn't supposed to be modified.
+		 */
+		route.depot = this.depot;
+		route.assignedVehicle = new Vehicle(this.assignedVehicle.getVehicleNr(), this.assignedVehicle.getCapacity(), this.assignedVehicle.getDuration());
+		
+		return route;
 	}
 }

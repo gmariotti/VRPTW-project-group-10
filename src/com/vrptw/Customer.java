@@ -16,9 +16,9 @@ public class Customer {
 	private int		endTw;					// end of time window (latest time for start of
 											// service), if any
 	private int		patternUsed;			// the combination of
-	private double	arriveTime;			// time at which the car arrives to the customer
+	private double	arriveTime;				// time at which the car arrives to the customer
 	private double	waitingTime;			// time to wait until arriveTime equal start time window
-	private double	twViol;				// value of time window violation, 0 if none
+	private double	twViol;					// value of time window violation, 0 if none
 
 	/**
 	 * Not sure if we need them
@@ -205,7 +205,7 @@ public class Customer {
 	 */
 
 	public double getDepartureTime() {
-		return arriveTime + serviceDuration;
+		return arriveTime + waitingTime + serviceDuration;
 	}
 	
 	/**
