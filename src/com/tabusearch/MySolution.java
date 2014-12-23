@@ -24,9 +24,9 @@ public class MySolution extends SolutionAdapter {
 	private Depot		depot;
 	private Cost		cost;
 
-	private double		alpha				= 1;
-	private double		beta				= 1;
-	private double		gamma				= 1;
+	private double		alpha				= 2;
+	private double		beta				= 2;
+	private double		gamma				= 2;
 
 	/**
 	 * Default constructor for MySolution Class. It does nothing. If you want to generate an initial
@@ -212,10 +212,50 @@ public class MySolution extends SolutionAdapter {
 	/**
 	 * This function is used to clone a Solution.
 	 * 
-	 * @param solution
-	 *            The MySolution we want to clone. If null, we consider the current MySolution.
 	 * @return a MySolution object
 	 */
+	public Object clone() {
+		MySolution clonedSolution = (MySolution) super.clone();
+
+		clonedSolution.instance = instance;
+		clonedSolution.maxVehicleNumber = instance.getVehiclesNr();
+		clonedSolution.maxVehicleCapacity = instance.getVehicleCapacity();
+		clonedSolution.customersNumber = instance.getCustomersNr();
+		clonedSolution.distances = instance.getDistances();
+		clonedSolution.depot = instance.getDepot();
+		clonedSolution.routes = new Route[this.maxVehicleNumber];
+		clonedSolution.cost = new Cost();
+
+		List<Customer> customers;
+		int i = 0;
+
+		clonedSolution.setCost(new Cost(this.cost));
+		clonedSolution.alpha = this.alpha;
+		clonedSolution.beta = this.beta;
+		clonedSolution.gamma = this.gamma;
+
+		for (Route route : this.routes) {
+			if (route == null) {
+				break;
+			}
+			customers = route.getCustomers();
+
+			clonedSolution.routes[i] = new Route();
+			// clone route information
+			clonedSolution.routes[i].setIndex(route.getIndex());
+			clonedSolution.routes[i].setDepot(clonedSolution.depot);
+			clonedSolution.routes[i].setAssignedVehicle(route.getAssignedVehicle());
+			clonedSolution.routes[i].setCost(new Cost(route.getCost()));
+
+			for (Customer customer : customers) {
+				// clone customers
+				clonedSolution.routes[i].addCustomer(new Customer(customer), -1);
+			}
+			i++;
+		}
+
+		return clonedSolution;
+	}
 
 	public void print() {
 		Route[] routes = this.getRoutes();
@@ -411,49 +451,6 @@ public class MySolution extends SolutionAdapter {
 	 */
 	public void setCost(Cost cost) {
 		this.cost = cost;
-	}
-
-	public Object clone() {
-		MySolution clonedSolution = (MySolution) super.clone();
-
-		clonedSolution.instance = instance;
-		clonedSolution.maxVehicleNumber = instance.getVehiclesNr();
-		clonedSolution.maxVehicleCapacity = instance.getVehicleCapacity();
-		clonedSolution.customersNumber = instance.getCustomersNr();
-		clonedSolution.distances = instance.getDistances();
-		clonedSolution.depot = instance.getDepot();
-		clonedSolution.routes = new Route[this.maxVehicleNumber];
-		clonedSolution.cost = new Cost();
-
-		List<Customer> customers;
-		int i = 0;
-
-		clonedSolution.setCost(new Cost(this.cost));
-		clonedSolution.alpha = this.alpha;
-		clonedSolution.beta = this.beta;
-		clonedSolution.gamma = this.gamma;
-
-		for (Route route : this.routes) {
-			if (route == null) {
-				break;
-			}
-			customers = route.getCustomers();
-
-			clonedSolution.routes[i] = new Route();
-			// clone route information
-			clonedSolution.routes[i].setIndex(route.getIndex());
-			clonedSolution.routes[i].setDepot(clonedSolution.depot);
-			clonedSolution.routes[i].setAssignedVehicle(route.getAssignedVehicle());
-			clonedSolution.routes[i].setCost(new Cost(route.getCost()));
-
-			for (Customer customer : customers) {
-				// clone customers
-				clonedSolution.routes[i].addCustomer(new Customer(customer), -1);
-			}
-			i++;
-		}
-
-		return clonedSolution;
 	}
 
 }
