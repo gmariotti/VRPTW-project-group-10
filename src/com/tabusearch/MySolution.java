@@ -5,6 +5,7 @@ package com.tabusearch;
 
 import java.util.*;
 
+import org.coinor.opents.Solution;
 import org.coinor.opents.SolutionAdapter;
 
 import com.vrptw.*;
@@ -24,9 +25,9 @@ public class MySolution extends SolutionAdapter {
 	private Depot		depot;
 	private Cost		cost;
 
-	private double		alpha				= 2;
-	private double		beta				= 2;
-	private double		gamma				= 2;
+	private double		alpha				= 1;
+	private double		beta				= 1;
+	private double		gamma				= 1;
 
 	/**
 	 * Default constructor for MySolution Class. It does nothing. If you want to generate an initial
@@ -48,6 +49,17 @@ public class MySolution extends SolutionAdapter {
 		this.cost = new Cost();
 	}
 
+	public void calculateCost() {
+		Route[] routes = this.getRoutes();
+		Cost solCost = this.cost;
+		solCost.reset();
+		for (Route route : routes) {
+			Cost cost = route.getCost();
+			solCost.add(cost);
+		}
+		solCost.calculateTotal(this.getAlpha(), this.getBeta(), this.getGamma());
+	}
+
 	/**
 	 * This method is used to generate a new initial solution.
 	 * 
@@ -61,9 +73,8 @@ public class MySolution extends SolutionAdapter {
 		 * customer
 		 */
 		List<Customer> customers = new ArrayList<Customer>();
-		for (Customer tmp : this.instance.getCustomers()) {
-			Customer customer = new Customer(tmp);
-			customers.add(customer);
+		for (Customer customer : this.instance.getCustomers()) {
+			customers.add(customer.clone());
 		}
 
 		/*
@@ -92,8 +103,12 @@ public class MySolution extends SolutionAdapter {
 						depot.getYCoordinate());
 				if (distanceCost < customer.getStartTw()) { // I have to wait the opening time
 					customersCost.add((double) customer.getStartTw());
-				} else { // I need more time to arrive compared to the opening time
+				} else if (distanceCost < customer.getEndTw()) {
+					// I need more time to arrive compared to the opening time but I can arrive
+					// before the ending time
 					customersCost.add(distanceCost);
+				} else {
+					customersCost.add(Double.POSITIVE_INFINITY);
 				}
 			}
 			List<Customer> routeCustomers = new ArrayList<>();
@@ -159,6 +174,7 @@ public class MySolution extends SolutionAdapter {
 			route.setCustomers(routeCustomers);
 			route.setAssignedVehicle(vehicle);
 			route.setDepot(depot);
+			route.calculateCost(route.getAssignedVehicle().getCapacity());
 
 			routes[vehicleNumber - 1] = route;
 			vehicleNumber++;
@@ -168,6 +184,51 @@ public class MySolution extends SolutionAdapter {
 				stop = Boolean.TRUE;
 			}
 		}
+
+		// break routes in the way to have a full loaded vehicle, even if this means an infeasible
+		// solution
+		List<Route> routes = Arrays.asList(this.getRoutes());
+		List<Route> notLoadedRoutes = new ArrayList<>();
+		List<Route> newRoutes = new ArrayList<>();
+		// I create a list with all the not full loaded vehicle
+		for (Route route : routes) {
+			if (route.getCost().getLoad() < route.getAssignedVehicle().getCapacity()) {
+				notLoadedRoutes.add(route);
+			} else {
+				newRoutes.add(route);
+			}
+		}
+		// I put customers to other routes, to reduce the number of routes
+		for (Route route : notLoadedRoutes) {
+			int index = notLoadedRoutes.indexOf(route);
+			List<Customer> customersList = route.getCustomers();
+			Cost cost = route.getCost();
+			Vehicle vehicle = route.getAssignedVehicle();
+			if (cost.getLoad() < vehicle.getCapacity()) {
+				int i = 0;
+				while (cost.getLoad() > 0) {
+					if (index < notLoadedRoutes.size() - 1 && i < customersList.size()) {
+						Customer customer = customersList.get(i);
+						Route nextRoute = notLoadedRoutes.get(index + 1);
+						Cost nextCost = nextRoute.getCost();
+						Vehicle nextVehicle = nextRoute.getAssignedVehicle();
+						if (nextCost.getLoad() + customer.getLoad() <= nextVehicle.getCapacity()) {
+							nextRoute.addCustomer(customer, -1);
+							cost.setLoad(cost.getLoad() - customer.getLoad());
+							nextCost.setLoad(nextCost.getLoad() + customer.getLoad());
+						} else {
+							index++;
+						}
+						i++;
+					} else {
+						break;
+					}
+				}
+			} else {
+				newRoutes.add(route);
+			}
+		}
+		this.setRoutes(newRoutes.toArray(new Route[newRoutes.size()]));
 
 	} // end function
 
@@ -180,14 +241,11 @@ public class MySolution extends SolutionAdapter {
 			return false;
 		}
 		boolean feasible = false;
-		while (!feasible) {
-			for (Double cost : customersCost) {
-				if (cost < Double.POSITIVE_INFINITY) {
-					feasible = true;
-					break;
-				}
+		for (Double cost : customersCost) {
+			if (cost < Double.POSITIVE_INFINITY) {
+				feasible = true;
+				break;
 			}
-			break;
 		}
 		return feasible;
 	}
@@ -215,7 +273,8 @@ public class MySolution extends SolutionAdapter {
 	 * @return a MySolution object
 	 */
 	public Object clone() {
-		MySolution clonedSolution = (MySolution) super.clone();
+		Solution solution = (Solution) super.clone();
+		MySolution clonedSolution = (MySolution) solution;
 
 		clonedSolution.instance = instance;
 		clonedSolution.maxVehicleNumber = instance.getVehiclesNr();
@@ -226,7 +285,6 @@ public class MySolution extends SolutionAdapter {
 		clonedSolution.routes = new Route[this.maxVehicleNumber];
 		clonedSolution.cost = new Cost();
 
-		List<Customer> customers;
 		int i = 0;
 
 		clonedSolution.setCost(new Cost(this.cost));
@@ -234,12 +292,7 @@ public class MySolution extends SolutionAdapter {
 		clonedSolution.beta = this.beta;
 		clonedSolution.gamma = this.gamma;
 
-		for (Route route : this.routes) {
-			if (route == null) {
-				break;
-			}
-			customers = route.getCustomers();
-
+		for (Route route : this.getRoutes()) {
 			clonedSolution.routes[i] = new Route();
 			// clone route information
 			clonedSolution.routes[i].setIndex(route.getIndex());
@@ -247,9 +300,9 @@ public class MySolution extends SolutionAdapter {
 			clonedSolution.routes[i].setAssignedVehicle(route.getAssignedVehicle());
 			clonedSolution.routes[i].setCost(new Cost(route.getCost()));
 
+			List<Customer> customers = route.getCustomers();
 			for (Customer customer : customers) {
-				// clone customers
-				clonedSolution.routes[i].addCustomer(new Customer(customer), -1);
+				clonedSolution.routes[i].addCustomer(customer.clone(), -1);
 			}
 			i++;
 		}

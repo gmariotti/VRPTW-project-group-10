@@ -110,6 +110,10 @@ public class Route {
 		return print.toString();
 	}
 
+	public boolean equals(Route route) {
+		return this.getIndex() == route.getIndex();
+	}
+	
 	/**
 	 * @return the index
 	 */
@@ -236,7 +240,7 @@ public class Route {
 			cost.setLoad(cost.getLoad() + currentCustomer.getLoad());
 			cost.setServiceTime(cost.getServiceTime() + currentCustomer.getServiceDuration());
 			
-			currentCustomer.setArriveTime(previousCustomer.getDepartureTime() + cost.getTravelTime());
+			currentCustomer.setArriveTime(previousCustomer.getDepartureTime() + previousCustomer.getDistance(currentCustomer.getXCoordinate(), currentCustomer.getYCoordinate()));
 			
 			currentCustomer.setWaitingTime(Math.max(0, currentCustomer.getStartTw() - currentCustomer.getArriveTime()));
 			cost.setWaitingTime(cost.getWaitingTime() + currentCustomer.getWaitingTime());

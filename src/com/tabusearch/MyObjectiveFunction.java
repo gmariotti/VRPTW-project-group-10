@@ -11,10 +11,10 @@ import com.vrptw.*;
 
 @SuppressWarnings("serial")
 public class MyObjectiveFunction implements ObjectiveFunction {
-	private static Instance	instance;
-	private MySolution		currentSolution;
-	private MyTwoExchangeMove currentMove;
-	private double			penalizationFactor;
+	private static Instance		instance;
+	private MySolution			currentSolution;
+	private MyTwoExchangeMove	currentMove;
+	private double				penalizationFactor;
 
 	public MyObjectiveFunction(Instance instance) {
 		MyObjectiveFunction.instance = instance;
@@ -29,26 +29,22 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 	 * @return
 	 */
 	public double[] evaluate(Solution soln, Move move) {
-		currentSolution = (MySolution) soln;
+		this.currentSolution = (MySolution) soln;
 
 		if (move != null) {
-			currentMove = (MyTwoExchangeMove) move;
+			this.currentMove = (MyTwoExchangeMove) move;
 			Cost newTotalCost;
 			double penalty = 0.0;
 
 			newTotalCost = calculateTotalCost();
-			
-			if(currentSolution.getObjectiveValue()[0] < newTotalCost.getTotal())
+
+			if (currentSolution.getObjectiveValue()[0] < newTotalCost.getTotal())
 				penalty = penalizationFactor * newTotalCost.getTotal();
-			
-			return new double[]{newTotalCost.getTotal() + penalty, 
-								newTotalCost.getTotal(), 
-								newTotalCost.getTravelTime(), 
-								newTotalCost.getLoadViol(), 
-								newTotalCost.getDurationViol(), 
-								newTotalCost.getTwViol()};		
-			} 
-		else {
+
+			return new double[] { newTotalCost.getTotal() + penalty, newTotalCost.getTotal(),
+					newTotalCost.getTravelTime(), newTotalCost.getLoadViol(),
+					newTotalCost.getDurationViol(), newTotalCost.getTwViol() };
+		} else {
 			evaluateFullSolutionCost();
 
 			return new double[] { Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY,
@@ -70,189 +66,144 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 
 		for (Route route : routes) {
 			route.getCost().reset(); // reset the cost of the route for the calculation
-			
-			calculateRouteCost(route);
-			
+
+			route.calculateCost(route.getAssignedVehicle().getCapacity());
+
 			addCostToTotal(totalSolutionCost, route.getCost());
 		}
 
-		
 		currentSolution.setCost(new Cost(totalSolutionCost));
 	}
-	
+
 	private void addCostToTotal(Cost totalCost, Cost cost) {
 		totalCost.setTravelTime(totalCost.getTravelTime() + cost.getTravelTime());
-		
+
 		totalCost.setLoad(totalCost.getLoad() + cost.getLoad());
 		totalCost.addLoadViol(cost.getLoadViol());
-		
+
 		totalCost.setServiceTime(totalCost.getServiceTime() + cost.getServiceTime());
-		
+
 		totalCost.setWaitingTime(totalCost.getWaitingTime() + cost.getWaitingTime());
-		
+
 		totalCost.addTwViol(cost.getTwViol());
 		totalCost.addDepotTwViol(cost.getDepotTwViol());
-		
-		totalCost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
+
+		totalCost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(),
+				currentSolution.getGamma());
 	}
 
-	
-	/* 
-	 * 	Calculates the full cost of the supplied route from the depot to all customers and
-	 * finally back to the depot.
-	 * TODO -> update all distances by using the getDistance method of the Instance class.
+	/*
+	 * Calculates the full cost of the supplied route from the depot to all customers and finally
+	 * back to the depot. TODO -> update all distances by using the getDistance method of the
+	 * Instance class.
 	 */
-	
-	public void calculateRouteCost(Route route)
-	{
+
+	public void calculateRouteCost(Route route) {
 		Cost cost = new Cost();
 		List<Customer> customers = route.getCustomers();
 		Customer previousCustomer;
 		Customer currentCustomer = customers.get(0);
 		Depot depot = route.getDepot();
-		
+
 		// this should be fixed by adding a getDistance method to the depot
-		cost.setTravelTime(currentCustomer.getDistance(depot.getXCoordinate(), depot.getYCoordinate()));
+		cost.setTravelTime(currentCustomer.getDistance(depot.getXCoordinate(),
+				depot.getYCoordinate()));
 		cost.setLoad(currentCustomer.getLoad());
 		cost.setServiceTime(currentCustomer.getServiceDuration());
-		
+
 		currentCustomer.setArriveTime(depot.getStartTw() + cost.getTravelTime());
-		
-		currentCustomer.setWaitingTime(Math.max(0, currentCustomer.getStartTw() - currentCustomer.getArriveTime()));
+
+		currentCustomer.setWaitingTime(Math.max(0,
+				currentCustomer.getStartTw() - currentCustomer.getArriveTime()));
 		cost.setWaitingTime(currentCustomer.getWaitingTime());
-		
-		currentCustomer.setTwViol(Math.max(0, currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
-		cost.addTwViol(currentCustomer.getTwViol());	
-		
-		for(int i = 1; i < customers.size(); i++)
-		{
+
+		currentCustomer.setTwViol(Math.max(0,
+				currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
+		cost.addTwViol(currentCustomer.getTwViol());
+
+		for (int i = 1; i < customers.size(); i++) {
 			previousCustomer = currentCustomer;
 			currentCustomer = customers.get(i);
-			
-			cost.setTravelTime(cost.getTravelTime() + previousCustomer.getDistance(currentCustomer.getXCoordinate(), currentCustomer.getYCoordinate()));
+
+			cost.setTravelTime(cost.getTravelTime()
+					+ previousCustomer.getDistance(currentCustomer.getXCoordinate(),
+							currentCustomer.getYCoordinate()));
 			cost.setLoad(cost.getLoad() + currentCustomer.getLoad());
 			cost.setServiceTime(cost.getServiceTime() + currentCustomer.getServiceDuration());
-			
-			currentCustomer.setArriveTime(previousCustomer.getDepartureTime() + cost.getTravelTime());
-			
-			currentCustomer.setWaitingTime(Math.max(0, currentCustomer.getStartTw() - currentCustomer.getArriveTime()));
+
+			currentCustomer.setArriveTime(previousCustomer.getDepartureTime()
+					+ cost.getTravelTime());
+
+			currentCustomer.setWaitingTime(Math.max(0, currentCustomer.getStartTw()
+					- currentCustomer.getArriveTime()));
 			cost.setWaitingTime(cost.getWaitingTime() + currentCustomer.getWaitingTime());
-			
-			currentCustomer.setTwViol(Math.max(0, currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
+
+			currentCustomer.setTwViol(Math.max(0,
+					currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
 			cost.addTwViol(cost.getTwViol() + currentCustomer.getTwViol());
 		}
-		
-		cost.setTravelTime(cost.getTravelTime() + currentCustomer.getDistance(depot.getXCoordinate(), depot.getYCoordinate()));
+
+		cost.setTravelTime(cost.getTravelTime()
+				+ currentCustomer.getDistance(depot.getXCoordinate(), depot.getYCoordinate()));
 		cost.setReturnToDepotTime(cost.getTravelTime());
 		cost.setDepotTwViol(Math.max(0, cost.getReturnToDepotTime() - depot.getEndTw()));
 		cost.addTwViol(cost.getTwViol() + cost.getDepotTwViol());
-		
+
 		cost.setLoadViol(Math.max(0, cost.getLoad() - instance.getCapacity(0)));
-		cost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(), currentSolution.getGamma());
-		
+		cost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(),
+				currentSolution.getGamma());
+
 		route.setCost(cost);
 	}
 
 	/*
-	 *  Calculate the impact of the currentMove cost-wise with respect
-	 * to the currentSolution. The currentSolution is cloned first the 
-	 * move is applied and then the cost is reevaluated so as not to
-	 * modify the currentSolution as this isn't the problem
+	 * Calculate the impact of the currentMove cost-wise with respect to the currentSolution. The
+	 * currentSolution is cloned first the move is applied and then the cost is reevaluated so as
+	 * not to modify the currentSolution as this isn't the problem
 	 */
-	private Cost calculateTotalCost()
-	{
+	private Cost calculateTotalCost() {
 		MySolution solution = (MySolution) currentSolution.clone();
 		Cost totalCost = new Cost(solution.getCost());
 		Cost variation;
-		Route firstRoute = solution.getRoutes(currentMove.getFirstRouteIndex());
-		Route secondRoute = solution.getRoutes(currentMove.getSecondRouteIndex());
-		Route newFirstRoute;
-		Route newSecondRoute;
-		
-		performTwoExchangeMove(solution);
-		
-		newFirstRoute = solution.getRoutes(currentMove.getFirstRouteIndex());
-		newSecondRoute = solution.getRoutes(currentMove.getSecondRouteIndex());	
-	
+		Route firstRoute = new Route(solution.getRoutes(currentMove.getFirstRouteIndex()));
+		Route secondRoute = new Route(solution.getRoutes(currentMove.getSecondRouteIndex()));
+
+		currentMove.operateOn(solution);
+
+		Route newFirstRoute = solution.getRoutes(currentMove.getFirstRouteIndex());
+		Route newSecondRoute = solution.getRoutes(currentMove.getSecondRouteIndex());
+
 		variation = calculateCostVariation(firstRoute, newFirstRoute);
-		
+
 		addCostToTotal(totalCost, variation);
-		
+
 		variation = calculateCostVariation(secondRoute, newSecondRoute);
-		
+
 		addCostToTotal(totalCost, variation);
-		
+
 		return totalCost;
 	}
 
 	/*
-	 * 	Used to calculate the variation in cost between two routes. This is used
-	 * to evaluate simultaneously the impact of removing route and adding new route.
+	 * Used to calculate the variation in cost between two routes. This is used to evaluate
+	 * simultaneously the impact of removing route and adding new route.
 	 */
 	private Cost calculateCostVariation(Route route, Route newRoute) {
 		Cost variation = new Cost(newRoute.getCost());
 		Cost cost = new Cost(route.getCost());
-		
+
 		variation.setTravelTime(variation.getTravelTime() - cost.getTravelTime());
-		
+
 		variation.setLoad(variation.getLoad() - cost.getLoad());
 		variation.addLoadViol((-1) * cost.getLoadViol());
-		
+
 		variation.setServiceTime(variation.getServiceTime() - cost.getServiceTime());
-		
+
 		variation.setWaitingTime(variation.getWaitingTime() - cost.getWaitingTime());
-		
+
 		variation.addTwViol((-1) * cost.getTwViol());
 		variation.addDepotTwViol((-1) * cost.getDepotTwViol());
-		
+
 		return variation;
 	}
-	
-	/*
-	 *  Method that performs the two exchange move and then also evaluates the
-	 * cost of the newly generated route; 
-	 */
-	private void performTwoExchangeMove(MySolution solution) {
-		Route firstRoute = solution.getRoutes(currentMove.getFirstRouteIndex());
-		Route secondRoute = solution.getRoutes(currentMove.getSecondRouteIndex());
-		Route newFirstRoute = firstRoute.copyRouteInformation();
-		Route newSecondRoute = secondRoute.copyRouteInformation();
-		List<Customer> oldCustomersFirst = firstRoute.getCustomers();
-		List<Customer> oldCustomersSecond = secondRoute.getCustomers();
-		List<Customer> newCustomersFirst = new ArrayList<>();
-		List<Customer> newCustomersSecond = new ArrayList<>();
-		
-		
-		for(int i = 0; i <= firstRoute.indexOfCustomer(currentMove.getFirstCustomer()); i++)
-		{
-			newCustomersFirst.add(new Customer(oldCustomersFirst.get(i)));
-		}
-		
-		for(int i = oldCustomersSecond.indexOf(currentMove.getSecondCustomer()) + 1; i < oldCustomersSecond.size(); i++)
-		{
-			newCustomersFirst.add(new Customer(oldCustomersSecond.get(i)));
-		}
-		
-		newFirstRoute.setCustomers(newCustomersFirst);
-		
-		calculateRouteCost(newFirstRoute);
-		
-		for(int i = 0; i <= secondRoute.indexOfCustomer(currentMove.getSecondCustomer()); i++)
-		{
-			newCustomersSecond.add(new Customer(oldCustomersSecond.get(i)));
-		}
-		
-		for(int i = oldCustomersFirst.indexOf(currentMove.getFirstCustomer()) + 1; i < oldCustomersFirst.size(); i++)
-		{
-			newCustomersSecond.add(new Customer(oldCustomersFirst.get(i)));
-		}
-		
-		newSecondRoute.setCustomers(newCustomersSecond);
-		
-		calculateRouteCost(newSecondRoute);
-		
-		solution.setRoutes(newFirstRoute, currentMove.getFirstRouteIndex());
-		solution.setRoutes(newSecondRoute, currentMove.getSecondRouteIndex());
-	}
-
 }

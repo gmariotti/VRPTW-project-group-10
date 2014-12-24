@@ -9,7 +9,7 @@ package com.tabusearch;
  */
 public class Granular {
 	private static double	granularityThreshold;
-	private static double	beta	= 1;			// we have to change it for modify the
+	private static double	beta	= 2;			// we have to change it for modify the
 													// granularityThreshold
 
 	/**
