@@ -62,6 +62,7 @@ public class VRPTW {
 
 			// Start solving
 			Granular.setGranularity(initialSol);
+			parameters.setIterations(1000);
 			searchProgram.tabuSearch.setIterationsToGo(parameters.getIterations());
 			searchProgram.tabuSearch.startSolving();
 
