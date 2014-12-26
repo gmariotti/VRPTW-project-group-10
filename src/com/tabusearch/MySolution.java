@@ -5,6 +5,7 @@ package com.tabusearch;
 
 import java.util.*;
 
+import org.coinor.opents.Solution;
 import org.coinor.opents.SolutionAdapter;
 
 import com.vrptw.*;
@@ -24,9 +25,9 @@ public class MySolution extends SolutionAdapter {
 	private Depot		depot;
 	private Cost		cost;
 
-	private double		alpha				= 2;
-	private double		beta				= 2;
-	private double		gamma				= 2;
+	private double		alpha				= 1;
+	private double		beta				= 1;
+	private double		gamma				= 0.1;
 
 	/**
 	 * Default constructor for MySolution Class. It does nothing. If you want to generate an initial
@@ -48,6 +49,17 @@ public class MySolution extends SolutionAdapter {
 		this.cost = new Cost();
 	}
 
+	public void calculateCost() {
+		Route[] routes = this.getRoutes();
+		Cost solCost = this.cost;
+		solCost.reset();
+		for (Route route : routes) {
+			Cost cost = route.getCost();
+			solCost.add(cost);
+		}
+		solCost.calculateTotal(this.getAlpha(), this.getBeta(), this.getGamma());
+	}
+
 	/**
 	 * This method is used to generate a new initial solution.
 	 * 
@@ -61,9 +73,8 @@ public class MySolution extends SolutionAdapter {
 		 * customer
 		 */
 		List<Customer> customers = new ArrayList<Customer>();
-		for (Customer tmp : this.instance.getCustomers()) {
-			Customer customer = new Customer(tmp);
-			customers.add(customer);
+		for (Customer customer : this.instance.getCustomers()) {
+			customers.add(customer.clone());
 		}
 
 		/*
@@ -92,8 +103,12 @@ public class MySolution extends SolutionAdapter {
 						depot.getYCoordinate());
 				if (distanceCost < customer.getStartTw()) { // I have to wait the opening time
 					customersCost.add((double) customer.getStartTw());
-				} else { // I need more time to arrive compared to the opening time
+				} else if (distanceCost < customer.getEndTw()) {
+					// I need more time to arrive compared to the opening time but I can arrive
+					// before the ending time
 					customersCost.add(distanceCost);
+				} else {
+					customersCost.add(Double.POSITIVE_INFINITY);
 				}
 			}
 			List<Customer> routeCustomers = new ArrayList<>();
@@ -159,6 +174,7 @@ public class MySolution extends SolutionAdapter {
 			route.setCustomers(routeCustomers);
 			route.setAssignedVehicle(vehicle);
 			route.setDepot(depot);
+			route.calculateCost(route.getAssignedVehicle().getCapacity());
 
 			routes[vehicleNumber - 1] = route;
 			vehicleNumber++;
@@ -169,7 +185,76 @@ public class MySolution extends SolutionAdapter {
 			}
 		}
 
+		/*
+		 * I delete all the routes that have customers less than a param, given by the number of
+		 * routes created
+		 */
+		Route[] routes = this.getRoutes();
+		int param = (int) (this.getRoutes().length / 10);
+		List<Customer> toAssign = new ArrayList<>();
+		List<Route> toDelete = new ArrayList<>();
+		int tot = 0;
+		for (int i = 0; i < routes.length; i++) {
+			Route route = routes[i];
+			customers = route.getCustomers();
+			if (customers.size() <= param) {
+				for (Customer customer : customers) {
+					toAssign.add(customer);
+				}
+				toDelete.add(route);
+				tot++;
+			}
+			if (tot == param) {
+				break;
+			}
+		}
+
+		if (toDelete.size() > 0) {
+			routes = removeRoutes(routes, toDelete);
+
+			/*
+			 * All the customers in the list as to be reassigned to the other routes
+			 */
+			for (int i = 0; i < routes.length; i++) {
+				customers = routes[i].getCustomers();
+				Cost cost = routes[i].getCost();
+				Vehicle vehicle = routes[i].getAssignedVehicle();
+				if (cost.getLoad() < vehicle.getCapacity()) {
+					boolean cycle = true;
+					int index = 0;
+					while (cycle && index < toAssign.size()) {
+						if (cost.getLoad() + toAssign.get(index).getLoad() < vehicle.getCapacity()) {
+							customers.add(toAssign.get(index));
+							cost.setLoad(cost.getLoad() + toAssign.get(index).getLoad());
+							cycle = false;
+							toAssign.remove(index);
+						} else {
+							index++;
+						}
+					}
+				}
+			}
+		}
+		this.setRoutes(routes);
 	} // end function
+
+	public Route[] removeRoutes(Route[] routes, List<Route> toDelete) {
+		List<Route> list = new ArrayList<>();
+		for (Route route : routes) {
+			int size = 0;
+			for (Route tmp : toDelete) {
+				if (route != null && route.getIndex() != tmp.getIndex()) {
+					size++;
+				} else if (route.getIndex() == tmp.getIndex()) {
+					size--;
+				}
+				if (size == toDelete.size()) {
+					list.add(route);
+				}
+			}
+		}
+		return list.toArray(new Route[list.size()]);
+	}
 
 	/**
 	 * check if there are one or more feasibleCustomers
@@ -180,14 +265,11 @@ public class MySolution extends SolutionAdapter {
 			return false;
 		}
 		boolean feasible = false;
-		while (!feasible) {
-			for (Double cost : customersCost) {
-				if (cost < Double.POSITIVE_INFINITY) {
-					feasible = true;
-					break;
-				}
+		for (Double cost : customersCost) {
+			if (cost < Double.POSITIVE_INFINITY) {
+				feasible = true;
+				break;
 			}
-			break;
 		}
 		return feasible;
 	}
@@ -215,7 +297,8 @@ public class MySolution extends SolutionAdapter {
 	 * @return a MySolution object
 	 */
 	public Object clone() {
-		MySolution clonedSolution = (MySolution) super.clone();
+		Solution solution = (Solution) super.clone();
+		MySolution clonedSolution = (MySolution) solution;
 
 		clonedSolution.instance = instance;
 		clonedSolution.maxVehicleNumber = instance.getVehiclesNr();
@@ -226,7 +309,6 @@ public class MySolution extends SolutionAdapter {
 		clonedSolution.routes = new Route[this.maxVehicleNumber];
 		clonedSolution.cost = new Cost();
 
-		List<Customer> customers;
 		int i = 0;
 
 		clonedSolution.setCost(new Cost(this.cost));
@@ -234,12 +316,7 @@ public class MySolution extends SolutionAdapter {
 		clonedSolution.beta = this.beta;
 		clonedSolution.gamma = this.gamma;
 
-		for (Route route : this.routes) {
-			if (route == null) {
-				break;
-			}
-			customers = route.getCustomers();
-
+		for (Route route : this.getRoutes()) {
 			clonedSolution.routes[i] = new Route();
 			// clone route information
 			clonedSolution.routes[i].setIndex(route.getIndex());
@@ -247,9 +324,9 @@ public class MySolution extends SolutionAdapter {
 			clonedSolution.routes[i].setAssignedVehicle(route.getAssignedVehicle());
 			clonedSolution.routes[i].setCost(new Cost(route.getCost()));
 
+			List<Customer> customers = route.getCustomers();
 			for (Customer customer : customers) {
-				// clone customers
-				clonedSolution.routes[i].addCustomer(new Customer(customer), -1);
+				clonedSolution.routes[i].addCustomer(customer.clone(), -1);
 			}
 			i++;
 		}
@@ -295,7 +372,7 @@ public class MySolution extends SolutionAdapter {
 		List<Route> list = new ArrayList<>();
 		for (Route route : this.routes) {
 			if (route == null) {
-				break;
+				continue;
 			}
 			list.add(route);
 		}
@@ -317,7 +394,14 @@ public class MySolution extends SolutionAdapter {
 	 *            the routes to set
 	 */
 	public void setRoutes(Route[] routes) {
-		this.routes = routes;
+		List<Route> list = new ArrayList<>();
+		for (Route route : routes) {
+			if (route == null) {
+				continue;
+			}
+			list.add(route);
+		}
+		this.routes = list.toArray(new Route[list.size()]);
 	}
 
 	/**

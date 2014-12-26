@@ -16,9 +16,9 @@ public class Customer {
 	private int		endTw;					// end of time window (latest time for start of
 											// service), if any
 	private int		patternUsed;			// the combination of
-	private double	arriveTime;				// time at which the car arrives to the customer
+	private double	arriveTime;			// time at which the car arrives to the customer
 	private double	waitingTime;			// time to wait until arriveTime equal start time window
-	private double	twViol;					// value of time window violation, 0 if none
+	private double	twViol;				// value of time window violation, 0 if none
 
 	/**
 	 * Not sure if we need them
@@ -87,6 +87,52 @@ public class Customer {
 		return print.toString();
 	}
 
+	/**
+	 * Method to check for equality between two Customer objects.
+	 * 
+	 * @return True if the two Customers contain the same data in their fields, false otherwise.
+	 */
+	public boolean equals(Object o) {
+		if (o == null)
+			throw new NullPointerException(
+					"The supplied object is not pointing to a valid customer object.");
+
+		Customer customer = (Customer) o;
+
+		// This optimizes a bit the equals method. If both objects are pointing to the same spot
+		// in memory then they represent the same object. We can return true immediately
+		if (this == customer)
+			return true;
+
+		return this.checkEquality(customer);
+	}
+
+	/*
+	 * Checks all conditions for two Customer object to be equal.
+	 */
+	private boolean checkEquality(Customer customer) {
+		if (this.number == customer.number && this.xCoordinate == customer.xCoordinate
+				&& this.yCoordinate == customer.yCoordinate
+				&& this.serviceDuration == customer.serviceDuration && this.load == customer.load
+				&& this.startTw == customer.startTw && this.endTw == customer.endTw
+				&& this.patternUsed == customer.patternUsed
+				&& this.arriveTime == customer.arriveTime
+				&& this.waitingTime == customer.waitingTime && this.twViol == customer.twViol
+				&& this.frequency == customer.frequency
+				&& this.combinationsVisitsNr == customer.combinationsVisitsNr
+		// && this.combinationsList.equals((customer.combinationsList)
+		) {
+			return true;
+		}
+
+		return false;
+	}
+	
+	public Customer clone() {
+		Customer customer = new Customer(this);
+		return customer;
+	}
+	
 	public int getNumber() {
 		return number;
 	}
@@ -206,51 +252,5 @@ public class Customer {
 
 	public double getDepartureTime() {
 		return arriveTime + waitingTime + serviceDuration;
-	}
-	
-	/**
-	 * Method to check for equality between two Customer objects.
-	 * @return True if the two Customers contain the same data in
-	 * their fields, false otherwise.
-	 */
-	public boolean equals(Object o)
-	{
-		if(o == null)
-			throw new NullPointerException("The supplied object is not pointing to a valid customer object.");
-		
-		Customer customer = (Customer) o;
-		
-		// This optimizes a bit the equals method. If both objects are pointing to the same spot 
-		// in memory then they represent the same object. We can return true immediately 
-		if(this == customer)
-			return true;
-		
-		return this.checkEquality(customer);
-	}
-	
-	/*
-	 * Checks all conditions for two Customer object to be equal.
-	 */
-	private boolean checkEquality(Customer customer) {
-		if(this.number == customer.number &&
-		   this.xCoordinate == customer.xCoordinate &&
-		   this.yCoordinate == customer.yCoordinate &&
-		   this.serviceDuration == customer.serviceDuration &&
-	 	   this.load == customer.load &&
-		   this.startTw == customer.startTw &&
-		   this.endTw == customer.endTw &&
-		   this.patternUsed == customer.patternUsed &&
-		   this.arriveTime == customer.arriveTime &&
-		   this.waitingTime == customer.waitingTime &&
-		   this.twViol == customer.twViol &&
-		   this.frequency == customer.frequency &&
-		   this.combinationsVisitsNr == customer.combinationsVisitsNr
-//		   && this.combinationsList.equals((customer.combinationsList)
-		   )
-		{
-			return true;
-		}
-		
-		return false;
 	}
 }
