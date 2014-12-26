@@ -6,8 +6,6 @@ package com.tabusearch;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-
 import org.coinor.opents.*;
 
 import com.tabusearch.MySolution;
@@ -239,17 +237,22 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void noChangeInValueMoveMade(TabuSearchEvent e) {
-		/*
-		 * count++; if (count == 20) { MySolution sol = (MySolution)
-		 * this.tabuSearch.getCurrentSolution(); bestSolution = (MySolution)
-		 * this.tabuSearch.getBestSolution(); sol.setGamma(0); count++; } if (count == 40) {
-		 * MySolution sol = (MySolution) this.tabuSearch.getCurrentSolution(); sol.setGamma(0.1);
-		 * this.tabuSearch.setBestSolution(bestSolution); count = 0; }
-		 */
+
 		count++;
-		if (count == 20) {
+		switch (count) {
+		case 20:
 			Granular.setGranularity((MySolution) this.tabuSearch.getBestSolution());
-			this.correction();
+			MySolution sol = (MySolution) this.tabuSearch.getCurrentSolution();
+			bestSolution = (MySolution) this.tabuSearch.getBestSolution().clone();
+			//sol.setGamma(0);
+			count++;
+			break;
+		/*case 40:
+			MySolution solution = (MySolution) this.tabuSearch.getCurrentSolution();
+			solution.setGamma(0.1);
+			this.tabuSearch.setBestSolution(bestSolution);
+			this.tabuSearch.getObjectiveFunction().evaluate(solution, null);
+			break;*/
 		}
 	}
 
