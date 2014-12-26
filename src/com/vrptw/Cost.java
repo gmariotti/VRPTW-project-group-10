@@ -59,7 +59,7 @@ public class Cost {
 	/**
 	 * This method allows the addition of two costs and stores the corresponding values in the
 	 * calling object. The method consists in adding all costs and time window violations to the costs
-	 * and violations in the original object.
+	 * and violations in the original object. Used to add a full route cost to a total.
 	 * 
 	 * @param cost
 	 *            - The cost to add to the calling object
@@ -71,6 +71,8 @@ public class Cost {
 		this.serviceTime += cost.serviceTime;
 		this.waitingTime += cost.waitingTime;
 		
+		this.loadViol += cost.loadViol;
+		this.durationViol += cost.durationViol;
 		this.twViol += cost.twViol;
 		this.depotTwViol += cost.depotTwViol;
 	}
@@ -91,6 +93,8 @@ public class Cost {
 		this.serviceTime += cost.serviceTime;
 		this.waitingTime += cost.waitingTime;
 
+		this.loadViol += cost.loadViol;
+		this.durationViol += cost.durationViol;
 		this.twViol += cost.twViol;
 		this.depotTwViol += cost.depotTwViol;
 
@@ -100,7 +104,7 @@ public class Cost {
 	/**
 	 * This method allows the subtraction between two costs and stores the corresponding values in
 	 * the calling object. The method consists in subtracting all costs and violations from the
-	 * costs and violations in the original object.
+	 * costs and violations in the original object. Used to subtract a full route cost from a total.
 	 * 
 	 * @param cost
 	 *            - The cost to subtract to the calling object
@@ -112,6 +116,7 @@ public class Cost {
 		this.waitingTime -= cost.waitingTime;
 		
 		this.loadViol -= cost.loadViol;
+		this.durationViol -= cost.durationViol;
 		this.twViol -= cost.twViol;
 		this.depotTwViol -= cost.depotTwViol;
 	}

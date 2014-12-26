@@ -74,7 +74,7 @@ public class MySolution extends SolutionAdapter {
 		 */
 		List<Customer> customers = new ArrayList<Customer>();
 		for (Customer customer : this.instance.getCustomers()) {
-			customers.add(customer.clone());
+			customers.add(new Customer(customer));
 		}
 
 		/*
@@ -326,7 +326,7 @@ public class MySolution extends SolutionAdapter {
 
 			List<Customer> customers = route.getCustomers();
 			for (Customer customer : customers) {
-				clonedSolution.routes[i].addCustomer(customer.clone(), -1);
+				clonedSolution.routes[i].addCustomer(new Customer(customer), -1);
 			}
 			i++;
 		}
