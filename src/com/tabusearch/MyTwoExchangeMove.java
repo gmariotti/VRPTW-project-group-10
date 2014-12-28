@@ -9,7 +9,6 @@ import java.util.List;
 import org.coinor.opents.Move;
 import org.coinor.opents.Solution;
 
-import com.vrptw.Cost;
 import com.vrptw.Customer;
 import com.vrptw.Instance;
 import com.vrptw.Route;

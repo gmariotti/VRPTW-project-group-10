@@ -30,6 +30,7 @@ public class MySolution extends SolutionAdapter {
 	// this parameter helps limit the number of customers per route
 	private double		routeLimitFactor				= 1.5;
 
+
 	/**
 	 * Default constructor for MySolution Class. It does nothing. If you want to generate an initial
 	 * solution, please : - first create a MySolution by calling this constructor - then call
@@ -93,6 +94,7 @@ public class MySolution extends SolutionAdapter {
 		 */
 		maxCustomersPerRoute = (maxCustomersPerRoute == 0 ? DEFAULT_MAX_CUSTOMERS_PER_ROUTE
 				: maxCustomersPerRoute);
+
 		Boolean stop = Boolean.FALSE; // The stopping condition will be true when there are no
 										// customers left.
 
@@ -699,5 +701,10 @@ public class MySolution extends SolutionAdapter {
 
 	public void setRouteLimitFactor(double routeLimitFactor) {
 		this.routeLimitFactor = routeLimitFactor;
+	}
+
+	public void removeRoute(int index) {
+		// TODO -> move routes that are non-null to fill the null place created by the method
+		this.routes[index] = null;
 	}
 }

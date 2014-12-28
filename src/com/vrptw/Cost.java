@@ -70,6 +70,7 @@ public class Cost {
 		this.load += cost.load;
 		this.serviceTime += cost.serviceTime;
 		this.waitingTime += cost.waitingTime;
+
 		this.loadViol += cost.loadViol;
 		this.durationViol += cost.durationViol;
 		this.twViol += cost.twViol;
@@ -91,6 +92,7 @@ public class Cost {
 		this.load += cost.load;
 		this.serviceTime += cost.serviceTime;
 		this.waitingTime += cost.waitingTime;
+
 		this.loadViol += cost.loadViol;
 		this.durationViol += cost.durationViol;
 		this.twViol += cost.twViol;
@@ -114,6 +116,7 @@ public class Cost {
 		this.waitingTime -= cost.waitingTime;
 		this.durationViol -= cost.durationViol;
 		this.loadViol -= cost.loadViol;
+		this.durationViol -= cost.durationViol;
 		this.twViol -= cost.twViol;
 		this.depotTwViol -= cost.depotTwViol;
 	}
