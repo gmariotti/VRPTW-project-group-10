@@ -16,18 +16,19 @@ import com.vrptw.*;
 @SuppressWarnings("serial")
 public class MySolution extends SolutionAdapter {
 
+	private final int	DEFAULT_MAX_CUSTOMERS_PER_ROUTE	= 4;
+
 	private Route[]		routes;
 	private Instance	instance;
-	private int			maxVehicleNumber	= 0;
-	private double		maxVehicleCapacity	= 0;
-	private int			customersNumber		= 0;
+	private int			maxVehicleNumber				= 0;
+	private double		maxVehicleCapacity				= 0;
+	private int			customersNumber					= 0;
 	private double[][]	distances;
 	private Depot		depot;
 	private Cost		cost;
 
-	private double		alpha				= 1;
-	private double		beta				= 1;
-	private double		gamma				= 0.1;
+	// this parameter helps limit the number of customers per route
+	private double		routeLimitFactor				= 1.5;
 
 	/**
 	 * Default constructor for MySolution Class. It does nothing. If you want to generate an initial
@@ -57,7 +58,7 @@ public class MySolution extends SolutionAdapter {
 			Cost cost = route.getCost();
 			solCost.add(cost);
 		}
-		solCost.calculateTotal(this.getAlpha(), this.getBeta(), this.getGamma());
+		solCost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
 	}
 
 	/**
@@ -74,7 +75,7 @@ public class MySolution extends SolutionAdapter {
 		 */
 		List<Customer> customers = new ArrayList<Customer>();
 		for (Customer customer : this.instance.getCustomers()) {
-			customers.add(customer.clone());
+			customers.add(new Customer(customer));
 		}
 
 		/*
@@ -84,7 +85,14 @@ public class MySolution extends SolutionAdapter {
 		 */
 
 		int vehicleNumber = 1; // First vehicle (i is the variable counting the vehicles)
+		int maxCustomersPerRoute = (int) ((customersNumber / maxVehicleNumber) * routeLimitFactor);
 
+		/*
+		 * in the rare case that there are less customers than vehicles we set the maximum number of
+		 * customers per route to a default value of 4
+		 */
+		maxCustomersPerRoute = (maxCustomersPerRoute == 0 ? DEFAULT_MAX_CUSTOMERS_PER_ROUTE
+				: maxCustomersPerRoute);
 		Boolean stop = Boolean.FALSE; // The stopping condition will be true when there are no
 										// customers left.
 
@@ -127,7 +135,7 @@ public class MySolution extends SolutionAdapter {
 			 */
 			Boolean full = Boolean.FALSE;
 
-			while (!full || customers.size() > 0) {
+			while (!full && customers.size() > 0 && routeCustomers.size() < maxCustomersPerRoute) {
 
 				customersCost = new ArrayList<>();
 				for (Customer customer : customers) {
@@ -174,7 +182,8 @@ public class MySolution extends SolutionAdapter {
 			route.setCustomers(routeCustomers);
 			route.setAssignedVehicle(vehicle);
 			route.setDepot(depot);
-			route.calculateCost(route.getAssignedVehicle().getCapacity());
+			route.calculateCost(route.getAssignedVehicle().getCapacity(), instance.getAlpha(),
+					instance.getBeta(), instance.getGamma());
 
 			routes[vehicleNumber - 1] = route;
 			vehicleNumber++;
@@ -237,6 +246,173 @@ public class MySolution extends SolutionAdapter {
 		}
 		this.setRoutes(routes);
 	} // end function
+
+	/**
+	 * Alternative way to generate an initial solution. Is different from the previous one, because
+	 * it accepts a random initial customer
+	 */
+	public void generateAlternativeInitialSolution() {
+		/*
+		 * Initialize the customers arraylist, creating a new customer identical to the one in the
+		 * instace.customers list. In this way we avoid any modification on the main list of
+		 * customer
+		 */
+		List<Customer> customers = new ArrayList<Customer>();
+		for (Customer customer : this.instance.getCustomers()) {
+			customers.add(new Customer(customer));
+		}
+		List<Route> routes = new ArrayList<>();
+
+		/*
+		 * At the beginning, we generate a solution by : - selecting a vehicle - selecting a
+		 * customer, and assign it to the vehicle until it's full - get another vehicle, and do the
+		 * same with the remaining customers. We do not care about time window (yet).
+		 */
+
+		int vehicleNumber = 1; // First vehicle (i is the variable counting the vehicles)
+		int maxCustomersPerRoute = (int) ((customersNumber / maxVehicleNumber) * routeLimitFactor);
+
+		/*
+		 * in the rare case that there are less customers than vehicles we set the maximum number of
+		 * customers per route to a default value of 4
+		 */
+		maxCustomersPerRoute = (maxCustomersPerRoute == 0 ? DEFAULT_MAX_CUSTOMERS_PER_ROUTE
+				: maxCustomersPerRoute);
+		Boolean stop = Boolean.FALSE; // The stopping condition will be true when there are no
+										// customers left.
+
+		/*
+		 * Each iteration is the creation of a route
+		 */
+		while (!stop) {
+			Depot depot = this.getDepot();
+			Vehicle vehicle = new Vehicle(vehicleNumber, this.getMaxVehicleCapacity(), 0);
+			double load = 0;
+			double time = 0;
+
+			int startCustomer = instance.getRandom().nextInt(customers.size());
+			List<Customer> routeCustomers = new ArrayList<>();
+			Customer customerToAdd = customers.get(startCustomer);
+			// add the customer to the route
+			routeCustomers.add(customerToAdd);
+			load += customerToAdd.getLoad();
+			customers.remove(startCustomer); // the list is automatically reordered
+
+			// increment the time
+			time = customerToAdd.getDistance(depot.getXCoordinate(), depot.getYCoordinate())
+					+ customerToAdd.getServiceDuration();
+
+			/*
+			 * Iterate starting from the last customer added
+			 */
+			Boolean full = Boolean.FALSE;
+
+			while (!full && customers.size() > 0 && routeCustomers.size() < maxCustomersPerRoute) {
+
+				List<Double> customersCost = new ArrayList<>();
+				for (Customer customer : customers) {
+					// evaluate distance
+					double distanceCost = customer.getDistance(customerToAdd.getXCoordinate(),
+							customerToAdd.getYCoordinate());
+					// check feasible
+					if ((load + customer.getLoad()) <= vehicle.getCapacity()
+							&& (time + distanceCost) < (customer.getEndTw() - customer
+									.getServiceDuration())) {
+						if ((time + distanceCost) < customer.getStartTw()) { // I have to wait
+							customersCost.add(customer.getStartTw() - time);
+						} else {
+							customersCost.add(distanceCost);
+						}
+					} else {
+						customersCost.add(Double.POSITIVE_INFINITY);
+					}
+				}
+				// if there isn't any feasible customer than I exit
+				if (!feasibleCustomers(customersCost)) {
+					break;
+				}
+				int index = minimumCost(customersCost);
+				customerToAdd = customers.get(index);
+				// add the customerToAdd
+				routeCustomers.add(customerToAdd);
+				load += customerToAdd.getLoad();
+				customers.remove(index); // the list is automatically reordered
+
+				// increment the time
+				time += customersCost.get(index) + customerToAdd.getServiceDuration();
+
+				if (load >= vehicle.getCapacity()) {
+					full = Boolean.TRUE;
+				}
+			}
+
+			/*
+			 * Generate the new route
+			 */
+			Route route = new Route();
+			route.setIndex(vehicleNumber - 1);
+			route.setCustomers(routeCustomers);
+			route.setAssignedVehicle(vehicle);
+			route.setDepot(depot);
+			route.calculateCost(route.getAssignedVehicle().getCapacity(), instance.getAlpha(),
+					instance.getBeta(), instance.getGamma());
+
+			routes.add(route);
+			vehicleNumber++;
+
+			// if there aren't other customers than exit
+			if (customers.size() == 0) {
+				stop = Boolean.TRUE;
+			}
+		}
+
+		/*
+		 * I delete all the routes that have customers less than a param, given by the number of
+		 * routes created
+		 */
+		Route[] routes1 = routes.toArray(new Route[routes.size()]);
+		int param = (int) (routes1.length / 10);
+		List<Customer> toAssign = new ArrayList<>();
+		List<Route> toDelete = new ArrayList<>();
+		for (int i = 0; i < routes1.length; i++) {
+			Route route = routes1[i];
+			customers = route.getCustomers();
+			if (customers.size() <= param) {
+				for (Customer customer : customers) {
+					toAssign.add(customer);
+				}
+				toDelete.add(route);
+			}
+		}
+
+		if (toDelete.size() > 0) {
+			routes1 = removeRoutes(routes1, toDelete);
+
+			/*
+			 * All the customers in the list as to be reassigned to the other routes
+			 */
+			for (int i = 0; i < routes1.length; i++) {
+				customers = routes1[i].getCustomers();
+				Cost cost = routes1[i].getCost();
+				Vehicle vehicle = routes1[i].getAssignedVehicle();
+				if (cost.getLoad() < vehicle.getCapacity()) {
+					boolean cycle = true;
+					int index = 0;
+					while (cycle && index < toAssign.size()) {
+						if (cost.getLoad() + toAssign.get(index).getLoad() < vehicle.getCapacity()) {
+							customers.add(toAssign.get(index));
+							cost.setLoad(cost.getLoad() + toAssign.get(index).getLoad());
+							cycle = false;
+							toAssign.remove(index);
+						} else {
+							index++;
+						}
+					}
+				}
+			}
+		}
+		this.setRoutes(routes1);
+	}
 
 	public Route[] removeRoutes(Route[] routes, List<Route> toDelete) {
 		List<Route> list = new ArrayList<>();
@@ -312,9 +488,6 @@ public class MySolution extends SolutionAdapter {
 		int i = 0;
 
 		clonedSolution.setCost(new Cost(this.cost));
-		clonedSolution.alpha = this.alpha;
-		clonedSolution.beta = this.beta;
-		clonedSolution.gamma = this.gamma;
 
 		for (Route route : this.getRoutes()) {
 			clonedSolution.routes[i] = new Route();
@@ -326,10 +499,12 @@ public class MySolution extends SolutionAdapter {
 
 			List<Customer> customers = route.getCustomers();
 			for (Customer customer : customers) {
-				clonedSolution.routes[i].addCustomer(customer.clone(), -1);
+				clonedSolution.routes[i].addCustomer(new Customer(customer), -1);
 			}
 			i++;
 		}
+
+		clonedSolution.routeLimitFactor = this.routeLimitFactor;
 
 		return clonedSolution;
 	}
@@ -356,8 +531,9 @@ public class MySolution extends SolutionAdapter {
 			}
 			solution += "\n";
 		}
-		solution += "The total cost is: " + this.cost.getTotal();
 		System.out.println(solution);
+		System.out.println("Cost with penalty: " + this.getObjectiveValue()[0]);
+		System.out.println("Cost without penalty: " + this.getObjectiveValue()[1]);
 	}
 
 	public Cost getCost() {
@@ -413,30 +589,6 @@ public class MySolution extends SolutionAdapter {
 	 */
 	public void setRoutes(Route route, int index) {
 		this.routes[index] = new Route(route);
-	}
-
-	public double getAlpha() {
-		return alpha;
-	}
-
-	public double getBeta() {
-		return beta;
-	}
-
-	public double getGamma() {
-		return gamma;
-	}
-
-	public void setAlpha(double alpha) {
-		this.alpha = alpha;
-	}
-
-	public void setBeta(double beta) {
-		this.beta = beta;
-	}
-
-	public void setGamma(double gamma) {
-		this.gamma = gamma;
 	}
 
 	/**
@@ -537,4 +689,15 @@ public class MySolution extends SolutionAdapter {
 		this.cost = cost;
 	}
 
+	public boolean isFeasible() {
+		return cost.checkFeasible();
+	}
+
+	public double getRouteLimitFactor() {
+		return routeLimitFactor;
+	}
+
+	public void setRouteLimitFactor(double routeLimitFactor) {
+		this.routeLimitFactor = routeLimitFactor;
+	}
 }

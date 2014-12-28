@@ -24,6 +24,10 @@ public class Instance {
 	private Route[]				routes;
 	private Random				random		= new Random();
 	private Parameters			parameters;
+	
+	private double		alpha				= 1;
+	private double		beta				= 1;
+	private double		gamma				= 1;
 
 	public Instance(Parameters parameters) {
 		this.setParameters(parameters);
@@ -342,5 +346,29 @@ public class Instance {
 	 */
 	public double getCapacity(int index) {
 		return capacities[index];
+	}
+
+	public double getAlpha() {
+		return alpha;
+	}
+
+	public void setAlpha(double alpha) {
+		this.alpha = alpha;
+	}
+
+	public double getBeta() {
+		return beta;
+	}
+
+	public void setBeta(double beta) {
+		this.beta = beta;
+	}
+
+	public double getGamma() {
+		return gamma;
+	}
+
+	public void setGamma(double gamma) {
+		this.gamma = gamma;
 	}
 }

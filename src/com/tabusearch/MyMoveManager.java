@@ -107,6 +107,8 @@ public class MyMoveManager implements MoveManager {
 				}
 			}
 		}
+		if (moves.size() == 0)
+			System.out.println("No new moves have been generated");
 		Move[] temp = moves.toArray(new Move[moves.size()]);
 		return temp;
 	}

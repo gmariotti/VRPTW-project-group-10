@@ -49,13 +49,14 @@ public class MySearchProgram implements TabuSearchListener {
 		MySearchProgram.setIterationsDone(0);
 		tabuSearch.addTabuSearchListener(this);
 		solution = (MySolution) initialSol;
-		// tabuSearch.addTabuSearchListener((MyTabuList)tabuList);
+		bestSolution = new MySolution(instance);
+		bestSolution.getCost().setTotal(Double.POSITIVE_INFINITY);
 	}
 
 	public void correction() {
 		solution = (MySolution) tabuSearch.getCurrentSolution();
 		Route[] routes = solution.getRoutes();
-		int param = (int) routes.length / 10;
+		int param = (int) routes.length / 10 + 1;
 
 		/*
 		 * I delete all the routes that have customers less than a param, given by the number of
@@ -121,6 +122,9 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void tabuSearchStarted(TabuSearchEvent e) {
+		System.out.println("Iteration done: " + iterationsDone);
+		// iterationsDone++;
+
 		solution = ((MySolution) tabuSearch.getCurrentSolution());
 		// initialize the feasible and best cost with the initial solution objective value
 		double[] objectiveValue = solution.getObjectiveValue();
@@ -143,13 +147,12 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void tabuSearchStopped(TabuSearchEvent e) {
-		solution = ((MySolution) tabuSearch.getBestSolution());
-		if (feasibleCost.getTotal() != Double.POSITIVE_INFINITY) {
-			solution.setCost(feasibleCost);
-			solution.setRoutes(feasibleRoutes);
-			// solution.setFeasibleIndex(feasibleIndex);
-			tabuSearch.setBestSolution(solution);
+		if (!bestSolution.isFeasible()) {
+			feasibleCost.setTotal(Double.POSITIVE_INFINITY);
+		} else {
+			feasibleCost.setTotal(bestSolution.getCost().getTotal());
 		}
+		feasibleRoutes = cloneRoutes(bestSolution.getRoutes());
 	}
 
 	/*
@@ -157,21 +160,21 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void newBestSolutionFound(TabuSearchEvent e) {
-		System.out.println("Iteration done: " + iterationsDone);
-
-		solution.print();
-		System.out.println("Cost with penalty: " + solution.getObjectiveValue()[0]);
-		System.out.println("Cost without penalty: " + solution.getObjectiveValue()[1]);
-
-		solution = (MySolution) tabuSearch.getBestSolution();
-		this.setBestRoutes(solution.getRoutes());
-		double[] objectiveValue = solution.getObjectiveValue();
-		if (objectiveValue == null) {
-			System.err.println("ObjectiveValue equals to null into newBestSolutionFound");
-			System.exit(0);
+		// this way we store the actual best solution
+		if (solution.isFeasible()
+				&& solution.getCost().getTotal() < bestSolution.getCost().getTotal()) {
+			bestSolution = (MySolution) solution.clone();
+			bestSolution.print();
 		}
-		this.setBestCost(getCostFromObjective(objectiveValue));
-		solution = (MySolution) tabuSearch.getCurrentSolution();
+		// solution = (MySolution) tabuSearch.getBestSolution();
+		// this.setBestRoutes(solution.getRoutes());
+		// double[] objectiveValue = solution.getObjectiveValue();
+		// if (objectiveValue == null) {
+		// System.err.println("ObjectiveValue equals to null into newBestSolutionFound");
+		// System.exit(0);
+		// }
+		// this.setBestCost(getCostFromObjective(objectiveValue));
+		// solution = (MySolution) tabuSearch.getCurrentSolution();
 	}
 
 	/**
@@ -180,6 +183,8 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void newCurrentSolutionFound(TabuSearchEvent event) {
+		iterationsDone++;
+
 		solution = ((MySolution) tabuSearch.getCurrentSolution());
 		double[] objectiveValue = solution.getObjectiveValue();
 		if (objectiveValue == null) {
@@ -216,6 +221,7 @@ public class MySearchProgram implements TabuSearchListener {
 		 * random = new Random().nextInt(moves.length); moves[random].operateOn(solution); }
 		 * this.count = 0; }
 		 */
+		System.out.println("Unimproving Move made in iterations " + iterationsDone);
 	}
 
 	/*
@@ -227,6 +233,7 @@ public class MySearchProgram implements TabuSearchListener {
 	public void improvingMoveMade(TabuSearchEvent e) {
 		// System.out.println("Improving Move made:" );
 		// ((MySolution)tabuSearch.getCurrentSolution()).print();
+		System.out.println("Improving Move made in iteration " + iterationsDone);
 	}
 
 	/*
@@ -237,22 +244,11 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void noChangeInValueMoveMade(TabuSearchEvent e) {
-
+		System.out.println("No change in the overall value made in iteration " + iterationsDone);
 		count++;
-		switch (count) {
-		case 20:
+		if (count == 1) {
 			Granular.setGranularity((MySolution) this.tabuSearch.getBestSolution());
-			MySolution sol = (MySolution) this.tabuSearch.getCurrentSolution();
-			bestSolution = (MySolution) this.tabuSearch.getBestSolution().clone();
-			//sol.setGamma(0);
-			count++;
-			break;
-		/*case 40:
-			MySolution solution = (MySolution) this.tabuSearch.getCurrentSolution();
-			solution.setGamma(0.1);
-			this.tabuSearch.setBestSolution(bestSolution);
-			this.tabuSearch.getObjectiveFunction().evaluate(solution, null);
-			break;*/
+			correction();
 		}
 	}
 

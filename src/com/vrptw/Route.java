@@ -212,7 +212,7 @@ public class Route {
 	 * @return
 	 */
 	
-	public void calculateCost(double maxAllowedLoad)
+	public void calculateCost(double maxAllowedLoad, double alpha, double beta, double gamma)
 	{
 		Cost cost = new Cost();
 		Customer previousCustomer;
@@ -255,7 +255,7 @@ public class Route {
 		cost.addTwViol(cost.getTwViol() + cost.getDepotTwViol());
 		
 		cost.setLoadViol(Math.max(0, cost.getLoad() - maxAllowedLoad));
-		cost.calculateTotal(1, 1, 1);
+		cost.calculateTotal(alpha, beta, gamma);
 		
 		this.setCost(cost);
 	}

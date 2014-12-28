@@ -48,7 +48,8 @@ public class MyTwoExchangeMove implements Move {
 		// create the new routes with the new cost for each one
 		evaluateNewRoutes(routeFirst, routeSecond, this.getFirstCustomer(),
 				this.getSecondCustomer());
-		sol.calculateCost();;
+		sol.calculateCost();
+		;
 	}
 
 	/**
@@ -99,9 +100,19 @@ public class MyTwoExchangeMove implements Move {
 
 		// set the new customers list for each route and evaluate the new cost
 		routeFirst.setCustomers(newCustomersFirst);
-		routeFirst.calculateCost(routeFirst.getAssignedVehicle().getCapacity());
+		routeFirst.calculateCost(routeFirst.getAssignedVehicle().getCapacity(),
+				instance.getAlpha(), instance.getBeta(), instance.getGamma());
 		routeSecond.setCustomers(newCustomersSecond);
-		routeSecond.calculateCost(routeSecond.getAssignedVehicle().getCapacity());
+		routeSecond.calculateCost(routeSecond.getAssignedVehicle().getCapacity(),
+				instance.getAlpha(), instance.getBeta(), instance.getGamma());
+	}
+
+	public void print() {
+		System.out.println("MyTwoExchangeMove");
+		System.out.println("First Customer: " + firstCustomer.getNumber());
+		System.out.println("Second Customer: " + secondCustomer.getNumber());
+		System.out.println("Route involved:");
+		System.out.println("Route n." + firstRouteIndex + "and n." + secondRouteIndex);
 	}
 
 	/**
