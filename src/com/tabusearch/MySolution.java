@@ -30,7 +30,6 @@ public class MySolution extends SolutionAdapter {
 	// this parameter helps limit the number of customers per route
 	private double		routeLimitFactor				= 1.5;
 
-
 	/**
 	 * Default constructor for MySolution Class. It does nothing. If you want to generate an initial
 	 * solution, please : - first create a MySolution by calling this constructor - then call
@@ -434,6 +433,11 @@ public class MySolution extends SolutionAdapter {
 		return list.toArray(new Route[list.size()]);
 	}
 
+	public void removeRoute(int index) {
+		// TODO -> move routes that are non-null to fill the null place created by the method
+		this.routes[index] = null;
+	}
+
 	/**
 	 * check if there are one or more feasibleCustomers
 	 */
@@ -534,8 +538,14 @@ public class MySolution extends SolutionAdapter {
 			solution += "\n";
 		}
 		System.out.println(solution);
-		System.out.println("Cost with penalty: " + this.getObjectiveValue()[0]);
-		System.out.println("Cost without penalty: " + this.getObjectiveValue()[1]);
+		int customerPrint = 0;
+		for (Route route : routes) {
+			List<Customer> customers = route.getCustomers();
+			customerPrint += customers.size();
+		}
+		System.out.println("Customer number " + customerPrint);
+		// System.out.println("Cost with penalty: " + this.getObjectiveValue()[0]);
+		// System.out.println("Cost without penalty: " + this.getObjectiveValue()[1]);
 	}
 
 	public Cost getCost() {
@@ -703,8 +713,4 @@ public class MySolution extends SolutionAdapter {
 		this.routeLimitFactor = routeLimitFactor;
 	}
 
-	public void removeRoute(int index) {
-		// TODO -> move routes that are non-null to fill the null place created by the method
-		this.routes[index] = null;
-	}
 }

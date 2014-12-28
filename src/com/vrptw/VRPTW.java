@@ -47,7 +47,7 @@ public class VRPTW {
 			// Init memory for Tabu Search
 			initialSol = new MySolution(instance);
 			objFunc = new MyObjectiveFunction(instance);
-			initialSol.generateAlternativeInitialSolution();
+			initialSol.generateInitialSolution();
 			initialSol.setObjectiveValue(objFunc.evaluate(initialSol, null));
 
 			// temporary just to see if initialSol works
@@ -71,7 +71,7 @@ public class VRPTW {
 			duration.stop();
 
 			// Show all routes, routes' vehicle and routes' customers
-			MySolution sol = searchProgram.getSolution();
+			MySolution sol = searchProgram.getBestSolution();
 			sol.print();
 
 			// Show solution on solution.csv
