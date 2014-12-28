@@ -27,7 +27,7 @@ public class Instance {
 	
 	private double		alpha				= 1;
 	private double		beta				= 1;
-	private double		gamma				= 0.1;
+	private double		gamma				= 1;
 
 	public Instance(Parameters parameters) {
 		this.setParameters(parameters);

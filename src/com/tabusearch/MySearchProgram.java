@@ -25,17 +25,17 @@ public class MySearchProgram implements TabuSearchListener {
 	public TabuSearch	tabuSearch;
 	private MySolution	solution;
 	private MySolution	bestSolution;
-	private MySolution 	previousSolution;
+	private MySolution	previousSolution;
 	private Instance	instance;
-	private Route[]		feasibleRoutes; // stores the routes of the feasible solution
-	private Cost		feasibleCost;	// stores the total cost of the feasible solution
-	private Route[]		bestRoutes;	// stores the routes of the best solution
-	private Cost		bestCost;		// stores the total cost of the best solution
-	private Route[]		currentRoutes;	// stores the routes of the current solution
-	private Cost		currentCost;	// stores the total cost of the current solution
+	private Route[]		feasibleRoutes;	// stores the routes of the feasible solution
+	private Cost		feasibleCost;		// stores the total cost of the feasible solution
+	private Route[]		bestRoutes;		// stores the routes of the best solution
+	private Cost		bestCost;			// stores the total cost of the best solution
+	private Route[]		currentRoutes;		// stores the routes of the current solution
+	private Cost		currentCost;		// stores the total cost of the current solution
 
-	public int			count		= 0;
-	private boolean 	skip 		= false;
+	public int			count	= 0;
+	private boolean		skip	= false;
 
 	/**
 	 * Considered other parameters that can be used
@@ -53,13 +53,13 @@ public class MySearchProgram implements TabuSearchListener {
 		solution = (MySolution) initialSol;
 		bestSolution = new MySolution(instance);
 		bestSolution.getCost().setTotal(Double.POSITIVE_INFINITY);
-		// tabuSearch.addTabuSearchListener((MyTabuList)tabuList);
 	}
 
 	public void correction() {
 		solution = (MySolution) tabuSearch.getCurrentSolution();
 		Route[] routes = solution.getRoutes();
-		int param = (int) routes.length / 10;
+		int param = (int) Math.sqrt(instance.getVehicleCapacity() * instance.getVehiclesNr()
+				/ (2 * instance.getCustomersNr()));
 
 		/*
 		 * I delete all the routes that have customers less than a param, given by the number of
@@ -89,9 +89,9 @@ public class MySearchProgram implements TabuSearchListener {
 				List<Customer> customers = routes[i].getCustomers();
 				Cost cost = routes[i].getCost();
 				Vehicle vehicle = routes[i].getAssignedVehicle();
-				if (cost.getLoad() < vehicle.getCapacity()) {
+				int index = 0;
+				while (cost.getLoad() < vehicle.getCapacity() && index < toAssign.size()) {
 					boolean cycle = true;
-					int index = 0;
 					while (cycle && index < toAssign.size()) {
 						if (cost.getLoad() + toAssign.get(index).getLoad() < vehicle.getCapacity()) {
 							customers.add(toAssign.get(index));
@@ -115,6 +115,16 @@ public class MySearchProgram implements TabuSearchListener {
 		}
 		System.out.println("Tot customers after correction " + totCust);
 
+		// reorder the index of the routes and of the vehicle
+		int index = 0;
+		for (Route route : routes) {
+			route.setIndex(index);
+			route.getAssignedVehicle().setVehicleNr(index + 1);
+			index++;
+			route.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
+					instance.getBeta(), instance.getGamma());
+		}
+
 		solution.setRoutes(routes);
 		solution.calculateCost();
 	}
@@ -126,7 +136,7 @@ public class MySearchProgram implements TabuSearchListener {
 	@Override
 	public void tabuSearchStarted(TabuSearchEvent e) {
 		System.out.println("Iteration done: " + iterationsDone);
-		
+
 		solution = ((MySolution) tabuSearch.getCurrentSolution());
 		// initialize the feasible and best cost with the initial solution objective value
 		double[] objectiveValue = solution.getObjectiveValue();
@@ -149,7 +159,12 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void tabuSearchStopped(TabuSearchEvent e) {
-		
+		if (!bestSolution.isFeasible()) {
+			feasibleCost.setTotal(Double.POSITIVE_INFINITY);
+		} else {
+			feasibleCost.setTotal(bestSolution.getCost().getTotal());
+		}
+		feasibleRoutes = cloneRoutes(bestSolution.getRoutes());
 	}
 
 	/*
@@ -157,24 +172,13 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void newBestSolutionFound(TabuSearchEvent e) {
-		
-		
-		// this way we store the actual best solution
-		if(solution.isFeasible() && solution.getCost().getTotal() < bestSolution.getCost().getTotal())
-		{
-			bestSolution = (MySolution) solution.clone();
-			bestSolution.print();
-		}
 
-//		solution = (MySolution) tabuSearch.getBestSolution();
-//		this.setBestRoutes(solution.getRoutes());
-//		double[] objectiveValue = solution.getObjectiveValue();
-//		if (objectiveValue == null) {
-//			System.err.println("ObjectiveValue equals to null into newBestSolutionFound");
-//			System.exit(0);
-//		}
-//		this.setBestCost(getCostFromObjective(objectiveValue));
-//		solution = (MySolution) tabuSearch.getCurrentSolution();
+		// this way we store the actual best solution
+		if (solution.isFeasible()
+				&& solution.getCost().getTotal() < bestSolution.getCost().getTotal()) {
+			bestSolution = (MySolution) solution.clone();
+			// bestSolution.print();
+		}
 	}
 
 	/**
@@ -183,9 +187,8 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void newCurrentSolutionFound(TabuSearchEvent event) {
-		iterationsDone++;
 		previousSolution = solution;
-		
+
 		solution = ((MySolution) tabuSearch.getCurrentSolution());
 		double[] objectiveValue = solution.getObjectiveValue();
 		if (objectiveValue == null) {
@@ -193,8 +196,6 @@ public class MySearchProgram implements TabuSearchListener {
 			System.exit(0);
 		}
 		currentCost = getCostFromObjective(objectiveValue);
-		
-		
 
 		// Check to see if a new feasible solution is found
 		// Checking with the current solution admits new feasible solution
@@ -210,111 +211,74 @@ public class MySearchProgram implements TabuSearchListener {
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.coinor.opents.TabuSearchListener#unimprovingMoveMade(org.coinor.opents.TabuSearchEvent)
+	 * Called when the event UnimprovingMoveMade is fired
 	 */
 	@Override
 	public void unimprovingMoveMade(TabuSearchEvent e) {
-		/*
-		 * this.count++; if (this.count == 20) { MoveManager moveManager =
-		 * this.tabuSearch.getMoveManager(); solution = (MySolution)
-		 * this.tabuSearch.getCurrentSolution(); int routeLength = solution.getRoutes().length; for
-		 * (int i = 0; i < routeLength; i++) { Move[] moves = moveManager.getAllMoves(solution); int
-		 * random = new Random().nextInt(moves.length); moves[random].operateOn(solution); }
-		 * this.count = 0; }
-		 */
+		iterationsDone++;
+		System.out.println("Unimproving Move made in iterations " + iterationsDone);
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.coinor.opents.TabuSearchListener#improvingMoveMade(org.coinor.opents.TabuSearchEvent)
+	 * Called when the event ImprovingMoveMade is fired
 	 */
 	@Override
 	public void improvingMoveMade(TabuSearchEvent e) {
+		iterationsDone++;
 		System.out.println("Improving Move made in iteration " + iterationsDone);
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.coinor.opents.TabuSearchListener#noChangeInValueMoveMade(org.coinor.opents.TabuSearchEvent
-	 * )
+	 * Called when the event NoChangeInValueMoveMade is fired
 	 */
 	@Override
 	public void noChangeInValueMoveMade(TabuSearchEvent e) {
-//		System.out.println("No change in the overall value made in iteration " + iterationsDone);
-//		solution = (MySolution) this.tabuSearch.getCurrentSolution().clone();
-//		solution.print();
-		
+		System.out.println("No change in the overall value made in iteration " + iterationsDone);
+		count++;
+		if (count == 1) {
+			Granular.setGranularity((MySolution) this.tabuSearch.getBestSolution());
+			this.correction();
+			count = 0;
+		}
+
 		MySolution solution = (MySolution) this.tabuSearch.getCurrentSolution();
 		MySolution splitSolution = null;
 		boolean noSplit = solution.getRoutes().length > instance.getVehiclesNr() - 1;
 		MySolution combineSolution = null;
 		boolean noCombine = solution.getRoutes().length <= 1;
-		
-		if(!noCombine)
-		{
+
+		if (!noCombine) {
 			combineSolution = performCombine();
 		}
-		
-		if(!noSplit)
-		{
+
+		if (!noSplit) {
 			splitSolution = performSplit();
 		}
-		
-		if(skip == false)
-		{
-			if(noCombine)		// the combine move cannot be implemented
-			{
+
+		if (skip == false) {
+			if (noCombine) {// the combine move cannot be implemented
 				this.tabuSearch.setCurrentSolution(splitSolution);
-			}
-			else if(noSplit)	// the split move cannot be implemented
-			{
+			} else if (noSplit) {// the split move cannot be implemented
 				this.tabuSearch.setCurrentSolution(combineSolution);
-			}
-			else
-			{
-				if(splitSolution.getCost().getTotal() < combineSolution.getCost().getTotal())
-				{
+			} else {
+				if (splitSolution.getCost().getTotal() < combineSolution.getCost().getTotal()) {
 					this.tabuSearch.setCurrentSolution(splitSolution);
-				}
-				else
-				{
+				} else {
 					this.tabuSearch.setCurrentSolution(combineSolution);
 				}
 			}
-			
+
 			skip = true;
-		
+
 			System.out.println("The current solution seen below:");
 			solution.print();
 			System.out.println("was changed to:");
 			((MySolution) this.tabuSearch.getCurrentSolution()).print();
-		}
-		else
-		{
+		} else {
 			skip = false;
 		}
 
-//		count++;
-//		switch (count) {
-//		case 20:
-//			Granular.setGranularity((MySolution) this.tabuSearch.getBestSolution());
-//			MySolution sol = (MySolution) this.tabuSearch.getCurrentSolution();
-//			instance.setGamma(0);
-//			count++;
-//			break;
-//		case 40:
-//			MySolution solution = (MySolution) this.tabuSearch.getCurrentSolution();
-//			instance.setGamma(0.1);
-//			this.tabuSearch.setBestSolution(bestSolution);
-//			this.tabuSearch.getObjectiveFunction().evaluate(solution, null);
-//			break;
-//		}
 	}
-	
 
 	private MySolution performCombine() {
 		MySolution sol = (MySolution) solution.clone();
@@ -325,40 +289,31 @@ public class MySearchProgram implements TabuSearchListener {
 		double[] routeTotalCost = new double[size];
 		Route newRoute;
 		List<Customer> customers;
-		
+
 		// initialization of data
-		for(int i = 0; i < size; i++)
-		{
+		for (int i = 0; i < size; i++) {
 			indexes[i] = routes[i].getIndex();
 			routeCustomerNumber[i] = routes[i].getCustomers().size();
 			routeTotalCost[i] = routes[i].getCost().getTotal();
 		}
-		
+
 		/*
-		 *  Use a bubble sort to sort first by the number of customers per route,
-		 * in ascending order, and then, in case of ties, by the total cost of the route,
-		 * in descending order. 
+		 * Use a bubble sort to sort first by the number of customers per route, in ascending order,
+		 * and then, in case of ties, by the total cost of the route, in descending order.
 		 */
-		for(int i = 0; i < size; i++)
-		{
-			for(int j = 1; j < size - i; j++)
-			{
+		for (int i = 0; i < size; i++) {
+			for (int j = 1; j < size - i; j++) {
 				boolean condition = false;
-				
-				if(routeCustomerNumber[j - 1] > routeCustomerNumber[j])
-				{
+
+				if (routeCustomerNumber[j - 1] > routeCustomerNumber[j]) {
 					condition = true;
-				}
-				else if(routeCustomerNumber[j - 1] == routeCustomerNumber[j])
-				{
-					if(routeTotalCost[j - 1] < routeTotalCost[j])
-					{
+				} else if (routeCustomerNumber[j - 1] == routeCustomerNumber[j]) {
+					if (routeTotalCost[j - 1] < routeTotalCost[j]) {
 						condition = true;
 					}
 				}
-				
-				if(condition)
-				{
+
+				if (condition) {
 					int tempInt = indexes[j - 1];
 					indexes[j - 1] = indexes[j];
 					indexes[j] = tempInt;
@@ -371,39 +326,46 @@ public class MySearchProgram implements TabuSearchListener {
 				}
 			}
 		}
-		
+
 		// get the lowest index among the chosen routes
 		int index = (indexes[0] < indexes[1] ? indexes[0] : indexes[1]);
-		
+
 		newRoute = routes[index].copyRouteInformation();
 		customers = new ArrayList<>(routeCustomerNumber[0] + routeCustomerNumber[1]);
-		
+
 		customers.addAll(routes[indexes[0]].getCustomers());
 		customers.addAll(routes[indexes[1]].getCustomers());
 		orderCustomersByEndTw(customers);
-		
+		// orderCustomersByStartTw(customers);
+
 		newRoute.setCustomers(customers);
-		newRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
-		
+		newRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
+				instance.getBeta(), instance.getGamma());
+
 		// cost change made here
 		Cost varCost = new Cost(newRoute.getCost());
 		varCost.subtract(routes[indexes[0]].getCost());
 		varCost.subtract(routes[indexes[1]].getCost());
-		
+
+		// check if the violation in the cost are greater than 0
+		varCost.setDurationViol(varCost.getDurationViol() > 0 ? varCost.getDurationViol() : 0);
+		varCost.setLoadViol(varCost.getLoadViol() > 0 ? varCost.getLoadViol() : 0);
+		varCost.setTwViol(varCost.getTwViol() > 0 ? varCost.getTwViol() : 0);
+		varCost.setWaitingTime(varCost.getWaitingTime() > 0 ? varCost.getWaitingTime() : 0);
+
 		sol.setRoutes(newRoute, index);
 		Cost newCost = sol.getCost();
 		newCost.add(varCost);
 		newCost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
 		sol.setCost(newCost);
-		
+
 		index = (indexes[0] < indexes[1] ? indexes[1] : indexes[0]);
-		
+
 		/*
-		 *   Correct the routes in the solution by removing the route in the highest
-		 *  index and substitute it with the following routes.
+		 * Correct the routes in the solution by removing the route in the highest index and
+		 * substitute it with the following routes.
 		 */
-		for(int i = index; i < size - 1; i++)
-		{
+		for (int i = index; i < size - 1; i++) {
 			Route route = sol.getRoutes(i + 1);
 			Vehicle vehicle = route.getAssignedVehicle();
 			vehicle.setVehicleNr(i + 1);
@@ -411,182 +373,194 @@ public class MySearchProgram implements TabuSearchListener {
 			route.setAssignedVehicle(vehicle);
 			sol.setRoutes(route, i);
 		}
-		
+
 		// remove the last route as it is no longer needed
 		sol.removeRoute(size - 1);
-		
+
 		return sol;
 	}
 
-	private void orderCustomersByEndTw(List<Customer> customers) {
+	/**
+	 * Order Customers by Starting Time Window in ascending order
+	 * 
+	 * @param customers
+	 */
+	private void orderCustomersByStartTw(List<Customer> customers) {
 		Customer temp;
-		
-		for(int i = 0; i < customers.size(); i++)
-		{
-			for(int j = 1; j < customers.size(); j++)
-			{
-				if(customers.get(j-1).getEndTw() < customers.get(j).getEndTw())
-				{
+
+		for (int i = 0; i < customers.size(); i++) {
+			for (int j = 1; j < customers.size(); j++) {
+				if (customers.get(j - 1).getStartTw() > customers.get(j).getStartTw()) {
 					temp = customers.get(j - 1);
-					customers.set(j-1, customers.get(j));
+					customers.set(j - 1, customers.get(j));
 					customers.set(j, temp);
 				}
 			}
 		}
-		
+	}
+
+	/**
+	 * Order Customers by Ending Time Window in descending order
+	 * 
+	 * @param customers
+	 */
+	private void orderCustomersByEndTw(List<Customer> customers) {
+		Customer temp;
+
+		for (int i = 0; i < customers.size(); i++) {
+			for (int j = 1; j < customers.size(); j++) {
+				if (customers.get(j - 1).getEndTw() < customers.get(j).getEndTw()) {
+					temp = customers.get(j - 1);
+					customers.set(j - 1, customers.get(j));
+					customers.set(j, temp);
+				}
+			}
+		}
+
 	}
 
 	private MySolution performSplit() {
 		MySolution sol = (MySolution) solution.clone();
 		Route[] routes = sol.getRoutes();
-		int size = routes.length; 
+		int size = routes.length;
 		int[] indexes = new int[size];
 		int maxIndex = -1;
 		double[] costPerCustomer = new double[size];
 		double maxCostPerCustomer = Double.NEGATIVE_INFINITY;
-		
+
 		/*
-		 *   The factor is used to make it more likely that this method give higher
-		 *  chance to longer routes to be picked. However, if the value is kept
-		 *  in an appropriately small range even small route that are not efficient
-		 *  in terms of cost will be picked.
+		 * The factor is used to make it more likely that this method give higher chance to longer
+		 * routes to be picked. However, if the value is kept in an appropriately small range even
+		 * small route that are not efficient in terms of cost will be picked.
 		 */
 		double factor = 0.1;
-		
+
 		// initialize the data and find the max total cost
-		for(int i = 0; i < size; i++)
-		{
+		for (int i = 0; i < size; i++) {
 			int customerNumber = routes[i].getCustomers().size();
 			indexes[i] = i;
 			// TODO -> This might be better if travelTime is taken into consideration
-			
-			if(customerNumber > 1) {
-				costPerCustomer[i] = (routes[i].getCost().getTotal()/customerNumber) * (1 + factor * customerNumber);
-			}
-			else {
+
+			if (customerNumber > 1) {
+				costPerCustomer[i] = (routes[i].getCost().getTotal() / customerNumber)
+						* (1 + factor * customerNumber);
+			} else {
 				// a route of a single customer can't be split
 				costPerCustomer[i] = Double.NEGATIVE_INFINITY;
 			}
-			
-			if(maxCostPerCustomer < costPerCustomer[i])
-			{
+
+			if (maxCostPerCustomer < costPerCustomer[i]) {
 				maxCostPerCustomer = costPerCustomer[i];
 				maxIndex = i;
 			}
 		}
-		
+
 		Route routeToBeSplit = sol.getRoutes(maxIndex);
 		List<Customer> customers = routeToBeSplit.getCustomers();
-		
+
 		// order customers by end time windo
 		orderCustomersByEndTw(customers);
-		
+
 		/*
-		 *   The first new route will simply replace the route to be split,
-		 *  so we assign that route's unchanging information to the first
-		 *  route to be added.
+		 * The first new route will simply replace the route to be split, so we assign that route's
+		 * unchanging information to the first route to be added.
 		 */
 		Route newFirstRoute = routeToBeSplit.copyRouteInformation();
 		List<Customer> firstRouteCustomers = new ArrayList<>();
-		
+
 		/*
-		 *   The second new route will be a completely new route added at
-		 *  the end of the routes of the solution so we're creating all
-		 *  it's data excluding the cost and customers
+		 * The second new route will be a completely new route added at the end of the routes of the
+		 * solution so we're creating all it's data excluding the cost and customers
 		 */
 		Route newSecondRoute = new Route();
 		List<Customer> secondRouteCustomers = new ArrayList<>();
-		newSecondRoute.setAssignedVehicle(new Vehicle(size + 1, instance.getVehicleCapacity(), instance.getDurations()[0]));
+		newSecondRoute.setAssignedVehicle(new Vehicle(size + 1, instance.getVehicleCapacity(),
+				instance.getDurations()[0]));
 		newSecondRoute.setIndex(size);
 		newSecondRoute.setDepot(instance.getDepot());
-		
+
 		/*
-		 *  Approach #1
-		 *  
-		 *  	We add alternatively the customers first to the customers of the first
-		 *  route and then to those of the second route. This will probably lead to less
-		 *  or no Time Window constraint violation. However, some very good solutions, in
-		 *  which compatible customers, might be avoided because of this.
-		 *  	
-		 *  Note: By compatible customers I mean two consecutive customers that don't
-		 *  cause time window constraint violation.  
+		 * Approach #1 We add alternatively the customers first to the customers of the first route
+		 * and then to those of the second route. This will probably lead to less or no Time Window
+		 * constraint violation. However, some very good solutions, in which compatible customers,
+		 * might be avoided because of this. Note: By compatible customers I mean two consecutive
+		 * customers that don't cause time window constraint violation.
 		 */
-		
-		for(int i = 0; i < customers.size(); i++)
-		{
-			if(i % 2 == 0){
+
+		for (int i = 0; i < customers.size(); i++) {
+			if (i % 2 == 0) {
 				firstRouteCustomers.add(new Customer(customers.get(i)));
-			}
-			else {
+			} else {
 				secondRouteCustomers.add(new Customer(customers.get(i)));
 			}
 		}
-		
-		/* 
-		 *  Approach #2
-		 * 
-		 * 		In this case the index decides where the route will be split and the
-		 * minimum cumulative cost (i.e the minimum cost coming from both the first and
-		 * second new routes) is picked by remembering the index where it was found.
-		 * This is a more complex method and has more or less the opposite qualities
-		 * w.r.t. the Approach #1	
+
+		/*
+		 * Approach #2 In this case the index decides where the route will be split and the minimum
+		 * cumulative cost (i.e the minimum cost coming from both the first and second new routes)
+		 * is picked by remembering the index where it was found. This is a more complex method and
+		 * has more or less the opposite qualities w.r.t. the Approach #1
 		 */
-		
-//		Cost minCost = new Cost();
-//		minCost.setTotal(Double.POSITIVE_INFINITY);
-//		int minIndex = -1;
-//		
-//		for(int i = 1; i < customers.size() - 1; i++)
-//		{
-//			for(int j = 0; j < i; j++)
-//			{
-//				firstRouteCustomers.add(new Customer(customers.get(j)));
-//			}
-//			for(int j = i; j < customers.size(); j++)
-//			{
-//				secondRouteCustomers.add(new Customer(customers.get(j)));
-//			}
-//			
-//			Route firstRoute = routeToBeSplit.copyRouteInformation();
-//			firstRoute.setCustomers(firstRouteCustomers);
-//			firstRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
-//			Route secondRoute = routeToBeSplit.copyRouteInformation();
-//			secondRoute.setCustomers(secondRouteCustomers);
-//			secondRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
-//			
-//			Cost cost = new Cost(firstRoute.getCost());
-//			cost.add(secondRoute.getCost());
-//			cost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
-//			
-//			if(minCost.getTotal() < cost.getTotal())
-//			{
-//				minCost = new Cost(cost);
-//				minIndex = i;
-//			}
-//			
-//			firstRouteCustomers.clear();
-//			secondRouteCustomers.clear();
-//		}
-//		
-//		// reconstruct the solution
-//		
-//		for(int i = 0; i < minIndex; i++)
-//		{
-//			firstRouteCustomers.add(new Customer(customers.get(i)));
-//		}
-//		for(int i = minIndex; i < customers.size(); i++)
-//		{
-//			secondRouteCustomers.add(new Customer(customers.get(i)));
-//		}
-		
+
+		// Cost minCost = new Cost();
+		// minCost.setTotal(Double.POSITIVE_INFINITY);
+		// int minIndex = -1;
+		//
+		// for(int i = 1; i < customers.size() - 1; i++)
+		// {
+		// for(int j = 0; j < i; j++)
+		// {
+		// firstRouteCustomers.add(new Customer(customers.get(j)));
+		// }
+		// for(int j = i; j < customers.size(); j++)
+		// {
+		// secondRouteCustomers.add(new Customer(customers.get(j)));
+		// }
+		//
+		// Route firstRoute = routeToBeSplit.copyRouteInformation();
+		// firstRoute.setCustomers(firstRouteCustomers);
+		// firstRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
+		// instance.getBeta(), instance.getGamma());
+		// Route secondRoute = routeToBeSplit.copyRouteInformation();
+		// secondRoute.setCustomers(secondRouteCustomers);
+		// secondRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
+		// instance.getBeta(), instance.getGamma());
+		//
+		// Cost cost = new Cost(firstRoute.getCost());
+		// cost.add(secondRoute.getCost());
+		// cost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
+		//
+		// if(minCost.getTotal() < cost.getTotal())
+		// {
+		// minCost = new Cost(cost);
+		// minIndex = i;
+		// }
+		//
+		// firstRouteCustomers.clear();
+		// secondRouteCustomers.clear();
+		// }
+		//
+		// // reconstruct the solution
+		//
+		// for(int i = 0; i < minIndex; i++)
+		// {
+		// firstRouteCustomers.add(new Customer(customers.get(i)));
+		// }
+		// for(int i = minIndex; i < customers.size(); i++)
+		// {
+		// secondRouteCustomers.add(new Customer(customers.get(i)));
+		// }
+
 		// the following is approach-independent
-		
+
 		newFirstRoute.setCustomers(firstRouteCustomers);
-		newFirstRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
-		
+		newFirstRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
+				instance.getBeta(), instance.getGamma());
+
 		newSecondRoute.setCustomers(secondRouteCustomers);
-		newSecondRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
-		
+		newSecondRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
+				instance.getBeta(), instance.getGamma());
+
 		// calculate incrementally the solution's cost
 		Cost newCost = new Cost(sol.getCost());
 		newCost.add(newFirstRoute.getCost());
@@ -594,11 +568,11 @@ public class MySearchProgram implements TabuSearchListener {
 		newCost.subtract(routeToBeSplit.getCost());
 		newCost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
 		sol.setCost(newCost);
-		
+
 		// change the route
 		sol.setRoutes(newFirstRoute, maxIndex);
 		sol.setRoutes(newSecondRoute, size);
-		
+
 		return sol;
 	}
 
@@ -767,6 +741,21 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	public void setCurrentCost(Cost currentCost) {
 		this.currentCost = currentCost;
+	}
+
+	/**
+	 * @return the bestSolution
+	 */
+	public MySolution getBestSolution() {
+		return bestSolution;
+	}
+
+	/**
+	 * @param bestSolution
+	 *            the bestSolution to set
+	 */
+	public void setBestSolution(MySolution bestSolution) {
+		this.bestSolution = bestSolution;
 	}
 
 }
