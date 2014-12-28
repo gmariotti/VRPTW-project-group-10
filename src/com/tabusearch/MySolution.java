@@ -15,7 +15,9 @@ import com.vrptw.*;
  */
 @SuppressWarnings("serial")
 public class MySolution extends SolutionAdapter {
-
+	
+	private final int DEFAULT_MAX_CUSTOMERS_PER_ROUTE = 4;
+	
 	private Route[]		routes;
 	private Instance	instance;
 	private int			maxVehicleNumber	= 0;
@@ -24,10 +26,9 @@ public class MySolution extends SolutionAdapter {
 	private double[][]	distances;
 	private Depot		depot;
 	private Cost		cost;
-
-	private double		alpha				= 1;
-	private double		beta				= 1;
-	private double		gamma				= 0.1;
+	
+	// this parameter helps limit the number of customers per route
+	private double 		routeLimitFactor 	= 1.5;
 
 	/**
 	 * Default constructor for MySolution Class. It does nothing. If you want to generate an initial
@@ -57,7 +58,7 @@ public class MySolution extends SolutionAdapter {
 			Cost cost = route.getCost();
 			solCost.add(cost);
 		}
-		solCost.calculateTotal(this.getAlpha(), this.getBeta(), this.getGamma());
+		solCost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
 	}
 
 	/**
@@ -74,7 +75,7 @@ public class MySolution extends SolutionAdapter {
 		 */
 		List<Customer> customers = new ArrayList<Customer>();
 		for (Customer customer : this.instance.getCustomers()) {
-			customers.add(customer.clone());
+			customers.add(new Customer(customer));
 		}
 
 		/*
@@ -84,7 +85,15 @@ public class MySolution extends SolutionAdapter {
 		 */
 
 		int vehicleNumber = 1; // First vehicle (i is the variable counting the vehicles)
-
+		
+		int maxCustomersPerRoute = (int)((customersNumber / maxVehicleNumber) * routeLimitFactor);
+		
+		/*
+		 *    in the rare case that there are less customers than vehicles we set
+		 *   the maximum number of customers per route to a default value of 4 
+		 */
+		maxCustomersPerRoute = (maxCustomersPerRoute == 0 ? DEFAULT_MAX_CUSTOMERS_PER_ROUTE : maxCustomersPerRoute);
+		
 		Boolean stop = Boolean.FALSE; // The stopping condition will be true when there are no
 										// customers left.
 
@@ -127,7 +136,7 @@ public class MySolution extends SolutionAdapter {
 			 */
 			Boolean full = Boolean.FALSE;
 
-			while (!full || customers.size() > 0) {
+			while ((!full || customers.size() > 0) && routeCustomers.size() < maxCustomersPerRoute) {
 
 				customersCost = new ArrayList<>();
 				for (Customer customer : customers) {
@@ -174,7 +183,7 @@ public class MySolution extends SolutionAdapter {
 			route.setCustomers(routeCustomers);
 			route.setAssignedVehicle(vehicle);
 			route.setDepot(depot);
-			route.calculateCost(route.getAssignedVehicle().getCapacity());
+			route.calculateCost(route.getAssignedVehicle().getCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
 
 			routes[vehicleNumber - 1] = route;
 			vehicleNumber++;
@@ -312,9 +321,6 @@ public class MySolution extends SolutionAdapter {
 		int i = 0;
 
 		clonedSolution.setCost(new Cost(this.cost));
-		clonedSolution.alpha = this.alpha;
-		clonedSolution.beta = this.beta;
-		clonedSolution.gamma = this.gamma;
 
 		for (Route route : this.getRoutes()) {
 			clonedSolution.routes[i] = new Route();
@@ -326,11 +332,13 @@ public class MySolution extends SolutionAdapter {
 
 			List<Customer> customers = route.getCustomers();
 			for (Customer customer : customers) {
-				clonedSolution.routes[i].addCustomer(customer.clone(), -1);
+				clonedSolution.routes[i].addCustomer(new Customer(customer), -1);
 			}
 			i++;
 		}
-
+		
+		clonedSolution.routeLimitFactor = this.routeLimitFactor; 
+		
 		return clonedSolution;
 	}
 
@@ -413,30 +421,6 @@ public class MySolution extends SolutionAdapter {
 	 */
 	public void setRoutes(Route route, int index) {
 		this.routes[index] = new Route(route);
-	}
-
-	public double getAlpha() {
-		return alpha;
-	}
-
-	public double getBeta() {
-		return beta;
-	}
-
-	public double getGamma() {
-		return gamma;
-	}
-
-	public void setAlpha(double alpha) {
-		this.alpha = alpha;
-	}
-
-	public void setBeta(double beta) {
-		this.beta = beta;
-	}
-
-	public void setGamma(double gamma) {
-		this.gamma = gamma;
 	}
 
 	/**
@@ -537,4 +521,20 @@ public class MySolution extends SolutionAdapter {
 		this.cost = cost;
 	}
 
+	public boolean isFeasible() {
+		return cost.checkFeasible();
+	}
+
+	public double getRouteLimitFactor() {
+		return routeLimitFactor;
+	}
+
+	public void setRouteLimitFactor(double routeLimitFactor) {
+		this.routeLimitFactor = routeLimitFactor;
+	}
+
+	public void removeRoute(int index) {
+		// TODO -> move routes that are non-null to fill the null place created by the method
+		this.routes[index] = null;
+	}
 }

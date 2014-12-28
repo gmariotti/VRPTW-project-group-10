@@ -1,6 +1,5 @@
 package com.tabusearch;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.coinor.opents.Move;
@@ -67,7 +66,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		for (Route route : routes) {
 			route.getCost().reset(); // reset the cost of the route for the calculation
 
-			route.calculateCost(route.getAssignedVehicle().getCapacity());
+			route.calculateCost(route.getAssignedVehicle().getCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
 
 			calculateRouteCost(route);
 			
@@ -90,8 +89,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		totalCost.addTwViol(cost.getTwViol());
 		totalCost.addDepotTwViol(cost.getDepotTwViol());
 
-		totalCost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(),
-				currentSolution.getGamma());
+		totalCost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
 	}
 
 	/*
@@ -149,8 +147,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		cost.addTwViol(cost.getTwViol() + cost.getDepotTwViol());
 
 		cost.setLoadViol(Math.max(0, cost.getLoad() - instance.getCapacity(0)));
-		cost.calculateTotal(currentSolution.getAlpha(), currentSolution.getBeta(),
-				currentSolution.getGamma());
+		cost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
 
 		route.setCost(cost);
 	}

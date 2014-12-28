@@ -9,7 +9,6 @@ import java.util.List;
 import org.coinor.opents.Move;
 import org.coinor.opents.Solution;
 
-import com.vrptw.Cost;
 import com.vrptw.Customer;
 import com.vrptw.Instance;
 import com.vrptw.Route;
@@ -99,9 +98,9 @@ public class MyTwoExchangeMove implements Move {
 
 		// set the new customers list for each route and evaluate the new cost
 		routeFirst.setCustomers(newCustomersFirst);
-		routeFirst.calculateCost(routeFirst.getAssignedVehicle().getCapacity());
+		routeFirst.calculateCost(routeFirst.getAssignedVehicle().getCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
 		routeSecond.setCustomers(newCustomersSecond);
-		routeSecond.calculateCost(routeSecond.getAssignedVehicle().getCapacity());
+		routeSecond.calculateCost(routeSecond.getAssignedVehicle().getCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
 	}
 
 	/**
