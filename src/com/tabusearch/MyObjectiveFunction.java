@@ -69,7 +69,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 			route.calculateCost(route.getAssignedVehicle().getCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
 
 			calculateRouteCost(route);
-			
+
 			addCostToTotal(totalSolutionCost, route.getCost());
 		}
 
@@ -105,7 +105,8 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		Customer currentCustomer = customers.get(0);
 		Depot depot = route.getDepot();
 
-		cost.setTravelTime(instance.getTravelTime(instance.getCustomersNr(), currentCustomer.getNumber()));
+		cost.setTravelTime(instance.getTravelTime(instance.getCustomersNr(),
+				currentCustomer.getNumber()));
 
 		cost.setLoad(currentCustomer.getLoad());
 		cost.setServiceTime(currentCustomer.getServiceDuration());
@@ -124,8 +125,9 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 			previousCustomer = currentCustomer;
 			currentCustomer = customers.get(i);
 
-			
-			cost.setTravelTime(cost.getTravelTime() + instance.getTravelTime(previousCustomer.getNumber(), currentCustomer.getNumber()));
+			cost.setTravelTime(cost.getTravelTime()
+					+ instance.getTravelTime(previousCustomer.getNumber(),
+							currentCustomer.getNumber()));
 			cost.setLoad(cost.getLoad() + currentCustomer.getLoad());
 			cost.setServiceTime(cost.getServiceTime() + currentCustomer.getServiceDuration());
 
@@ -140,8 +142,9 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 					currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
 			cost.addTwViol(cost.getTwViol() + currentCustomer.getTwViol());
 		}
-		
-		cost.setTravelTime(cost.getTravelTime() + instance.getTravelTime(currentCustomer.getNumber(), instance.getCustomersNr()));
+
+		cost.setTravelTime(cost.getTravelTime()
+				+ instance.getTravelTime(currentCustomer.getNumber(), instance.getCustomersNr()));
 		cost.setReturnToDepotTime(cost.getTravelTime());
 		cost.setDepotTwViol(Math.max(0, cost.getReturnToDepotTime() - depot.getEndTw()));
 		cost.addTwViol(cost.getTwViol() + cost.getDepotTwViol());
