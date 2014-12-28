@@ -532,4 +532,9 @@ public class MySolution extends SolutionAdapter {
 	public void setRouteLimitFactor(double routeLimitFactor) {
 		this.routeLimitFactor = routeLimitFactor;
 	}
+
+	public void removeRoute(int index) {
+		// TODO -> move routes that are non-null to fill the null place created by the method
+		this.routes[index] = null;
+	}
 }
