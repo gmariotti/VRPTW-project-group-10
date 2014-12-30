@@ -20,6 +20,9 @@ public class Customer {
 	private double	waitingTime;			// time to wait until arriveTime equal start time window
 	private double	twViol;				// value of time window violation, 0 if none
 
+	private int		previousCustomer;
+	private int		nextCustomer;
+
 	/**
 	 * Not sure if we need them
 	 */
@@ -127,12 +130,12 @@ public class Customer {
 
 		return false;
 	}
-	
+
 	public Customer clone() {
 		Customer customer = new Customer(this);
 		return customer;
 	}
-	
+
 	public int getNumber() {
 		return number;
 	}
@@ -219,6 +222,34 @@ public class Customer {
 
 	public void setTwViol(double twViol) {
 		this.twViol = twViol;
+	}
+
+	/**
+	 * @return the previousCustomer
+	 */
+	public int getPreviousCustomer() {
+		return previousCustomer;
+	}
+
+	/**
+	 * @param previousCustomer the previousCustomer to set
+	 */
+	public void setPreviousCustomer(int previousCustomer) {
+		this.previousCustomer = previousCustomer;
+	}
+
+	/**
+	 * @return the nextCustomer
+	 */
+	public int getNextCustomer() {
+		return nextCustomer;
+	}
+
+	/**
+	 * @param nextCustomer the nextCustomer to set
+	 */
+	public void setNextCustomer(int nextCustomer) {
+		this.nextCustomer = nextCustomer;
 	}
 
 	public int getFrequency() {

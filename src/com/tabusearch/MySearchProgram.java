@@ -51,6 +51,7 @@ public class MySearchProgram implements TabuSearchListener {
 		MySearchProgram.setIterationsDone(0);
 		tabuSearch.addTabuSearchListener(this);
 		solution = (MySolution) initialSol;
+		tabuSearch.setCurrentSolution(initialSol);
 		bestSolution = new MySolution(instance);
 		bestSolution.getCost().setTotal(Double.POSITIVE_INFINITY);
 	}
@@ -78,7 +79,7 @@ public class MySearchProgram implements TabuSearchListener {
 			}
 		}
 
-		if (toDelete.size() > 0) {
+		if (toDelete.size() > 0 && toDelete.size() < routes.length) {
 
 			routes = solution.removeRoutes(routes, toDelete);
 
@@ -104,6 +105,16 @@ public class MySearchProgram implements TabuSearchListener {
 					}
 				}
 			}
+			/*
+			 * } else if (toDelete.size() == routes.length) { /* All the routes have less customers
+			 * than the parameter, than we should need to recreate the routes
+			 */
+			/*
+			 * List<Customer> customers = new ArrayList<>(); for (Route route : routes) {
+			 * customers.addAll(route.getCustomers()); } List<Route> newRoutes = new ArrayList<>();
+			 * Route route = new Route(); List <Customer> newCustomers = new ArrayList<>() for
+			 * (Customer customer : customers) { }
+			 */
 		}
 
 		/*
@@ -217,6 +228,8 @@ public class MySearchProgram implements TabuSearchListener {
 	public void unimprovingMoveMade(TabuSearchEvent e) {
 		iterationsDone++;
 		System.out.println("Unimproving Move made in iterations " + iterationsDone);
+		MySolution solution = performCombine();
+		this.tabuSearch.setCurrentSolution(solution);
 	}
 
 	/*
@@ -234,18 +247,20 @@ public class MySearchProgram implements TabuSearchListener {
 	@Override
 	public void noChangeInValueMoveMade(TabuSearchEvent e) {
 		System.out.println("No change in the overall value made in iteration " + iterationsDone);
+		iterationsDone++;
 		count++;
 		if (count == 1) {
 			Granular.setGranularity((MySolution) this.tabuSearch.getBestSolution());
-			this.correction();
-			count = 0;
+			// this.correction();
 		}
 
 		MySolution solution = (MySolution) this.tabuSearch.getCurrentSolution();
 		MySolution splitSolution = null;
-		boolean noSplit = solution.getRoutes().length > instance.getVehiclesNr() - 1;
+		boolean noSplit = solution.getRoutes().length > (int) Math
+				.sqrt(instance.getVehiclesNr() * 4);
 		MySolution combineSolution = null;
-		boolean noCombine = solution.getRoutes().length <= 1;
+		boolean noCombine = solution.getRoutes().length <= (int) Math
+				.sqrt(instance.getVehiclesNr());
 
 		if (!noCombine) {
 			combineSolution = performCombine();
@@ -274,8 +289,9 @@ public class MySearchProgram implements TabuSearchListener {
 			solution.print();
 			System.out.println("was changed to:");
 			((MySolution) this.tabuSearch.getCurrentSolution()).print();
-		} else {
+		} else if (count == 10) {
 			skip = false;
+			//count = 0;
 		}
 
 	}
