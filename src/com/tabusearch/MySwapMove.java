@@ -27,15 +27,15 @@ public class MySwapMove implements Move {
 	 * @param instance
 	 * @param customer
 	 * @param deleteRouteNr
-	 * @param deletePositionIndex
+	 * @param insertPositionIndex
 	 * @param insertRouteNr
 	 */
 	public MySwapMove(Instance instance, Customer customer, int deleteRouteNr,
-			int deletePositionIndex, int insertRouteNr) {
+			int insertPositionIndex, int insertRouteNr) {
 		this.instance = instance;
 		this.customer = customer;
 		this.deleteRouteNr = deleteRouteNr;
-		this.deletePositionIndex = deletePositionIndex;
+		this.insertPositionIndex = insertPositionIndex;
 		this.insertRouteNr = insertRouteNr;
 	}
 
@@ -49,48 +49,26 @@ public class MySwapMove implements Move {
 		// obtain the routes in which I'm going to make the swap
 		Route insertRoute = mySol.getRoutes(this.getInsertRouteNr());
 		Route deleteRoute = mySol.getRoutes(this.getDeleteRouteNr());
-		// obtain the cost of each route
-		Cost initialInsertCost = insertRoute.getCost();
-		Cost initialDeleteCost = deleteRoute.getCost();
-		// evaluate new cost for insertRoute
-		// evaluate new cost for deleteRoute
-		// evaluate new cost of the solution
-		evaluateInsertRoute(insertRoute, customer, insertPositionIndex);
-		evaluateDeleteRoute(deleteRoute, customer, deletePositionIndex);
-		evaluateTotalCostVariation(mySol, this, initialInsertCost, initialDeleteCost);
-		// sol.incrementBs(this);
+
+		evaluateNewRoutes(insertRoute, deleteRoute, this.customer, this.insertPositionIndex);
+		mySol.calculateCost();
 	}
 
-	private void evaluateInsertRoute(Route insertRoute, Customer customer, int insertPositionIndex) {
+	private void evaluateNewRoutes(Route insertRoute, Route deleteRoute, Customer customer,
+			int insertPositionIndex) {
 		List<Customer> customers = insertRoute.getCustomers();
-		// route empty, insert customer
-		if (false) {
-
+		customers.add(insertPositionIndex, customer);
+		insertRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
+				instance.getBeta(), instance.getGamma());
+		customers = deleteRoute.getCustomers();
+		customers.remove(customer);
+		if (customers.size() != 0) {
+		deleteRoute.setCustomers(customers);
+		deleteRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
+				instance.getBeta(), instance.getGamma());
 		} else {
-			// position equal to the route length, so customer insert at the end
-			if (insertPositionIndex == customers.size()) {
-
-			} else {
-				// position is equal to 0
-				if (insertPositionIndex == 0) {
-
-				} else {
-
-				}
-			}
+			deleteRoute = null;
 		}
-
-	}
-
-	private void evaluateDeleteRoute(Route deleteRoute, Customer customer, int deletePositionIndex) {
-		// TODO Auto-generated method stub
-
-	}
-
-	private void evaluateTotalCostVariation(MySolution solution, MySwapMove mySwapMove,
-			Cost initialInsertCost, Cost initialDeleteCost) {
-		// TODO Auto-generated method stub
-
 	}
 
 	/**

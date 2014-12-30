@@ -59,6 +59,9 @@ public class Customer {
 		this.arriveTime = new Double(customer.arriveTime);
 		this.waitingTime = new Double(customer.waitingTime);
 		this.twViol = new Double(customer.twViol);
+		
+		this.setPreviousCustomer(customer.getPreviousCustomer());
+		this.setNextCustomer(customer.getNextCustomer());
 
 		this.frequency = customer.frequency;
 		this.combinationsVisitsNr = customer.combinationsVisitsNr;
@@ -131,6 +134,15 @@ public class Customer {
 		return false;
 	}
 
+	/**
+	 * 
+	 */
+	public void changePreviousToNext() {
+		int previous = this.getPreviousCustomer();
+		this.setPreviousCustomer(this.getNextCustomer());
+		this.setNextCustomer(previous);
+	}
+	
 	public Customer clone() {
 		Customer customer = new Customer(this);
 		return customer;
@@ -284,4 +296,5 @@ public class Customer {
 	public double getDepartureTime() {
 		return arriveTime + waitingTime + serviceDuration;
 	}
+
 }

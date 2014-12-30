@@ -13,9 +13,27 @@ public class Saving {
 	private double		saving;
 
 	public Saving(Depot depot, Customer customer1, Customer customer2) {
-		double saving = customer1.getDistance(depot.getXCoordinate(), depot.getYCoordinate())
-				+ customer2.getDistance(customer1.getXCoordinate(), customer1.getYCoordinate())
-				+ customer2.getDistance(depot.getXCoordinate(), depot.getYCoordinate());
+		/*double saving = customer1.getDistance(depot.getXCoordinate(), depot.getYCoordinate())
+				- customer2.getDistance(customer1.getXCoordinate(), customer1.getYCoordinate())
+				+ customer2.getDistance(depot.getXCoordinate(), depot.getYCoordinate());*/
+		double waitingTime0_1 = customer1.getStartTw()
+				- customer1.getDistance(depot.getXCoordinate(), depot.getYCoordinate());
+		waitingTime0_1 = waitingTime0_1 > 0 ? customer1.getStartTw() : customer1.getDistance(
+				depot.getXCoordinate(), depot.getYCoordinate());
+		double waitingTime1_2 = customer2.getStartTw() - waitingTime0_1
+				- customer2.getDistance(customer1.getXCoordinate(), customer1.getYCoordinate());
+		waitingTime1_2 = waitingTime1_2 > 0 ? customer2.getStartTw() : waitingTime0_1
+				+ customer2.getDistance(customer1.getXCoordinate(), customer1.getYCoordinate());
+		double waitingTime0_2 = customer2.getStartTw()
+				- customer2.getDistance(depot.getXCoordinate(), depot.getYCoordinate());
+		waitingTime0_2 = waitingTime0_2 > 0 ? customer2.getStartTw() : customer2.getDistance(
+				depot.getXCoordinate(), depot.getYCoordinate());
+		double waitingTime2_1 = customer1.getStartTw() - waitingTime0_2
+				- customer2.getDistance(customer1.getXCoordinate(), customer1.getYCoordinate());
+		waitingTime2_1 = waitingTime2_1 > 0 ? customer1.getStartTw() : waitingTime0_2
+				+ customer2.getDistance(customer1.getXCoordinate(), customer1.getYCoordinate());
+		double bestWaitingTime = waitingTime1_2 > waitingTime2_1 ? waitingTime2_1 : waitingTime1_2;
+		double saving = waitingTime0_1 + waitingTime0_2 - bestWaitingTime;
 		this.setSaving(saving);
 		this.setCustomer1(customer1);
 		this.setCustomerN1(customer1.getNumber());

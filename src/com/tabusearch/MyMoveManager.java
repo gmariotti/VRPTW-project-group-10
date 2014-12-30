@@ -32,9 +32,8 @@ public class MyMoveManager implements MoveManager {
 		MySolution mySol = (MySolution) solution;
 
 		switch (this.getMovesType()) {
-		/*
-		 * case SWAP: return getSwapMoves(mySol);
-		 */
+		case SWAP:
+			return getSwapMoves(mySol);
 		case TWO_EXCHANGE:
 			return getTwoExchangeMoves(mySol);
 		default:
@@ -58,9 +57,14 @@ public class MyMoveManager implements MoveManager {
 				// generate moves to all other routes
 				for (int k = 0; k < routes.length; k++) {
 					if (i != k) {
+						List<Customer> otherCustomers = routes[k].getCustomers();
 						Customer customer = customers.get(j);
-						Move move = new MySwapMove(getInstance(), customer, i, j, k);
-						moves.add(move);
+						for (int m = 0; m < otherCustomers.size(); m++) {
+							/*Customer otherCustomer = otherCustomers.get(m);
+							if (otherCustomer)*/
+							Move move = new MySwapMove(getInstance(), customer, i, m, k);
+							moves.add(move);
+						}
 					}
 				}
 			}

@@ -5,7 +5,10 @@ package com.tabusearch;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+
 import org.coinor.opents.*;
 
 import com.tabusearch.MySolution;
@@ -34,7 +37,6 @@ public class MySearchProgram implements TabuSearchListener {
 	private Route[]		currentRoutes;		// stores the routes of the current solution
 	private Cost		currentCost;		// stores the total cost of the current solution
 
-	public int			count	= 0;
 	private boolean		skip	= false;
 
 	/**
@@ -228,8 +230,6 @@ public class MySearchProgram implements TabuSearchListener {
 	public void unimprovingMoveMade(TabuSearchEvent e) {
 		iterationsDone++;
 		System.out.println("Unimproving Move made in iterations " + iterationsDone);
-		MySolution solution = performCombine();
-		this.tabuSearch.setCurrentSolution(solution);
 	}
 
 	/*
@@ -248,52 +248,95 @@ public class MySearchProgram implements TabuSearchListener {
 	public void noChangeInValueMoveMade(TabuSearchEvent e) {
 		System.out.println("No change in the overall value made in iteration " + iterationsDone);
 		iterationsDone++;
-		count++;
-		if (count == 1) {
-			Granular.setGranularity((MySolution) this.tabuSearch.getBestSolution());
-			// this.correction();
+
+		/*int param = (int) Math.sqrt(instance.getVehiclesNr() * instance.getVehicleCapacity()
+				/ (instance.getCustomersNr()));
+		Boolean stop = Boolean.FALSE;
+		int index = 0;
+		solution = (MySolution) this.tabuSearch.getCurrentSolution();
+		Route[] routes = solution.getRoutes();
+		while (!stop && index < routes.length) {
+			if (routes[index].getCustomers().size() < param) {
+				solution = combineRoutes(param);
+				this.tabuSearch.setCurrentSolution(solution);
+				stop = Boolean.TRUE;
+			}
+			index++;
+		}*/
+	}
+
+	private MySolution combineRoutes(int param) {
+		MySolution sol = (MySolution) solution.clone();
+		List<Route> routes = new ArrayList<>();
+		for (Route route : sol.getRoutes()) {
+			routes.add(route);
 		}
 
-		MySolution solution = (MySolution) this.tabuSearch.getCurrentSolution();
-		MySolution splitSolution = null;
-		boolean noSplit = solution.getRoutes().length > (int) Math
-				.sqrt(instance.getVehiclesNr() * 4);
-		MySolution combineSolution = null;
-		boolean noCombine = solution.getRoutes().length <= (int) Math
-				.sqrt(instance.getVehiclesNr());
+		/*
+		 * Order routes based on customers number. If same number of customers than consider the
+		 * route total cost
+		 */
+		Collections.sort(routes, new Comparator<Route>() {
 
-		if (!noCombine) {
-			combineSolution = performCombine();
-		}
-
-		if (!noSplit) {
-			splitSolution = performSplit();
-		}
-
-		if (skip == false) {
-			if (noCombine) {// the combine move cannot be implemented
-				this.tabuSearch.setCurrentSolution(splitSolution);
-			} else if (noSplit) {// the split move cannot be implemented
-				this.tabuSearch.setCurrentSolution(combineSolution);
-			} else {
-				if (splitSolution.getCost().getTotal() < combineSolution.getCost().getTotal()) {
-					this.tabuSearch.setCurrentSolution(splitSolution);
+			@Override
+			public int compare(Route arg0, Route arg1) {
+				if (arg0.getCustomers().size() == arg1.getCustomers().size()) {
+					return -Double.compare(arg0.getCost().getTotal(), arg1.getCost().getTotal());
 				} else {
-					this.tabuSearch.setCurrentSolution(combineSolution);
+					return Integer.compare(arg0.getCustomers().size(), arg1.getCustomers().size());
 				}
 			}
 
-			skip = true;
+		});
 
-			System.out.println("The current solution seen below:");
-			solution.print();
-			System.out.println("was changed to:");
-			((MySolution) this.tabuSearch.getCurrentSolution()).print();
-		} else if (count == 10) {
-			skip = false;
-			//count = 0;
+		for (int i = 0; i < routes.size() - 1; i++) {
+			Route route = routes.get(i);
+			List<Customer> customers = route.getCustomers();
+			if (customers.size() < param && customers.size() > 0) {
+				Route nextRoute = routes.get(i + 1);
+				List<Customer> nextCustomers = nextRoute.getCustomers();
+				List<Customer> newNextCustomers = new ArrayList<>();
+				for (Customer customer : nextCustomers) {
+					if (route.getCost().getLoad() + customer.getLoad() < instance
+							.getVehicleCapacity()) {
+						customers.add(new Customer(customer));
+					} else {
+						newNextCustomers.add(new Customer(customer));
+					}
+				}
+				nextRoute.setCustomers(newNextCustomers);
+				/*
+				 * customers are sorted based on StartTW and EndingTW
+				 */
+				Collections.sort(customers, new Comparator<Customer>() {
+
+					@Override
+					public int compare(Customer o1, Customer o2) {
+						if (o1.getStartTw() == o2.getStartTw()) {
+							return Double.compare(o1.getEndTw(), o2.getEndTw());
+						} else {
+							return Double.compare(o1.getStartTw(), o2.getStartTw());
+						}
+					}
+
+				});
+			}
 		}
-
+		List<Route> newRoutes = new ArrayList<>();
+		int index = 0;
+		for (Route route : routes) {
+			if (route.getCustomers().size() > 0) {
+				route.setIndex(index);
+				route.setAssignedVehicle(new Vehicle(index, instance.getVehicleCapacity(), 0));
+				route.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
+						instance.getBeta(), instance.getGamma());
+				newRoutes.add(route);
+				index++;
+			}
+		}
+		sol.setRoutes(newRoutes.toArray(new Route[newRoutes.size()]));
+		sol.calculateCost();
+		return sol;
 	}
 
 	private MySolution performCombine() {

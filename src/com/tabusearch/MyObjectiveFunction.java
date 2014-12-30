@@ -1,5 +1,7 @@
 package com.tabusearch;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.coinor.opents.Move;
@@ -17,7 +19,8 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 
 	public MyObjectiveFunction(Instance instance) {
 		MyObjectiveFunction.instance = instance;
-		penalizationFactor = 0.5 * Math.sqrt(instance.getVehiclesNr() * instance.getCustomersNr());
+		penalizationFactor = 0.5 * Math.sqrt(instance.getVehiclesNr()
+				* instance.getVehicleCapacity() / instance.getCustomersNr());
 	}
 
 	/**
@@ -31,12 +34,17 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		this.currentSolution = (MySolution) soln;
 
 		if (move != null) {
-			this.currentMove = (MyTwoExchangeMove) move;
-			Cost newTotalCost;
+			Cost newTotalCost = null;
+			if (instance.getParameters().getMovesType() == MovesType.TWO_EXCHANGE) {
+				this.currentMove = (MyTwoExchangeMove) move;
+
+				newTotalCost = calculateTotalCost();
+			} else if (instance.getParameters().getMovesType() == MovesType.SWAP) {
+				MySolution clone = (MySolution) soln.clone();
+				move.operateOn(clone);
+				newTotalCost = clone.getCost();
+			}
 			double penalty = 0.0;
-
-			newTotalCost = calculateTotalCost();
-
 			if (currentSolution.getObjectiveValue()[0] < newTotalCost.getTotal())
 				penalty = penalizationFactor * newTotalCost.getTotal();
 
@@ -65,10 +73,24 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 
 		for (Route route : routes) {
 			route.getCost().reset(); // reset the cost of the route for the calculation
+			route.calculateCost(route.getAssignedVehicle().getCapacity(), instance.getAlpha(),
+					instance.getBeta(), instance.getGamma());
+			Route reverse = route.copyRouteInformation();
+			List<Customer> reverseCustomers = new ArrayList<>();
+			for (Customer customer : route.getCustomers()) {
+				Customer tmp = new Customer(customer);
+				tmp.changePreviousToNext();
+				reverseCustomers.add(tmp);
+			}
+			Collections.reverse(reverseCustomers);
+			reverse.setCustomers(reverseCustomers);
+			reverse.calculateCost(reverse.getAssignedVehicle().getCapacity(), instance.getAlpha(),
+					instance.getBeta(), instance.getGamma());
+			if (route.getCost().getTotal() > reverse.getCost().getTotal()) {
+				route = reverse;
+			}
 
-			route.calculateCost(route.getAssignedVehicle().getCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
-
-			calculateRouteCost(route);
+			// calculateRouteCost(route);
 
 			addCostToTotal(totalSolutionCost, route.getCost());
 		}

@@ -136,7 +136,7 @@ public class MySolution extends SolutionAdapter {
 			 */
 			Boolean full = Boolean.FALSE;
 
-			while (!full && customers.size() > 0 && routeCustomers.size() < maxCustomersPerRoute) {
+			while (!full && customers.size() > 0 /*&& routeCustomers.size() < maxCustomersPerRoute*/) {
 
 				customersCost = new ArrayList<>();
 				for (Customer customer : customers) {
@@ -199,7 +199,7 @@ public class MySolution extends SolutionAdapter {
 		 * I delete all the routes that have customers less than a param, given by the number of
 		 * routes created
 		 */
-		Route[] routes = this.getRoutes();
+		/*Route[] routes = this.getRoutes();
 		int param = (int) (this.getRoutes().length / 10);
 		List<Customer> toAssign = new ArrayList<>();
 		List<Route> toDelete = new ArrayList<>();
@@ -220,12 +220,12 @@ public class MySolution extends SolutionAdapter {
 		}
 
 		if (toDelete.size() > 0) {
-			routes = removeRoutes(routes, toDelete);
+			routes = removeRoutes(routes, toDelete);*/
 
 			/*
 			 * All the customers in the list as to be reassigned to the other routes
 			 */
-			for (int i = 0; i < routes.length; i++) {
+			/*for (int i = 0; i < routes.length; i++) {
 				customers = routes[i].getCustomers();
 				Cost cost = routes[i].getCost();
 				Vehicle vehicle = routes[i].getAssignedVehicle();
@@ -245,9 +245,128 @@ public class MySolution extends SolutionAdapter {
 				}
 			}
 		}
-		this.setRoutes(routes);
+		this.setRoutes(routes);*/
 	} // end function
+	
+	/**
+	 * Generate a feasible initial solution
+	 */
+	public void generateInitialFeasibleSolution() {
+		/*
+		 * Initialize the customers arraylist, creating a new customer identical to the one in the
+		 * instace.customers list. In this way we avoid any modification on the main list of
+		 * customer
+		 */
+		List<Customer> customers = new ArrayList<Customer>();
+		for (Customer tmp : this.instance.getCustomers()) {
+			Customer customer = new Customer(tmp);
+			customers.add(customer);
+		}
 
+		/*
+		 * At the beginning, we generate a solution by : - selecting a vehicle - selecting a
+		 * customer, and assign it to the vehicle until it's full - get another vehicle, and do the
+		 * same with the remaining customers. We do not care about time window (yet).
+		 */
+
+		int vehicleNumber = 1; // First vehicle (i is the variable counting the vehicles)
+
+		Boolean stop = Boolean.FALSE; // The stopping condition will be true when there are no
+										// customers left.
+		
+		/*
+		 * Each iteration is the creation of a route
+		 */
+		while (!stop) {			
+			Depot depot = this.getDepot();
+			List<Double> customersCost = new ArrayList<>();
+			Vehicle vehicle = new Vehicle(vehicleNumber, this.getMaxVehicleCapacity(), 0);
+			double load = 0;
+			double time = 0;
+			for (Customer customer : customers) {
+				// cost from the depot into customersCost
+				double distanceCost = customer.getDistance(depot.getXCoordinate(),
+						depot.getYCoordinate());
+				if (distanceCost < customer.getStartTw()) { // I have to wait the opening time
+					customersCost.add((double) customer.getStartTw());
+				} else { // I need more time to arrive compared to the opening time
+					customersCost.add(distanceCost);
+				}
+			}
+			List<Customer> routeCustomers = new ArrayList<>();
+			int index = minimumCost(customersCost);
+			Customer customerToAdd = customers.get(index);
+			// add the customer to the route
+			routeCustomers.add(customerToAdd);
+			load += customerToAdd.getLoad();
+			customers.remove(index); // the list is automatically reordered
+
+			// increment the time
+			time = customersCost.get(index) + customerToAdd.getServiceDuration();
+
+			/*
+			 * Iterate starting from the last customer added
+			 */
+			Boolean full = Boolean.FALSE;
+			
+			while (!full || customers.size() > 0) {
+				
+				customersCost = new ArrayList<>();
+				for (Customer customer : customers) {
+					// evaluate distance
+					double distanceCost = customer.getDistance(customerToAdd.getXCoordinate(),
+							customerToAdd.getYCoordinate());
+					// check feasible
+					if ((load + customer.getLoad()) <= vehicle.getCapacity()
+							&& (time + distanceCost) < (customer.getEndTw() - customer
+									.getServiceDuration())) {
+						if ((time + distanceCost) < customer.getStartTw()) { // I have to wait
+							customersCost.add(customer.getStartTw() - time);
+						} else {
+							customersCost.add(distanceCost);
+						}
+					} else {
+						customersCost.add(Double.POSITIVE_INFINITY);
+					}
+				}
+				// if there isn't any feasible customer than I exit
+				if (!feasibleCustomers(customersCost)) {
+					break;
+				}
+				index = minimumCost(customersCost);
+				customerToAdd = customers.get(index);
+				// add the customerToAdd
+				routeCustomers.add(customerToAdd);
+				load += customerToAdd.getLoad();
+				customers.remove(index); // the list is automatically reordered
+
+				// increment the time
+				time += customersCost.get(index) + customerToAdd.getServiceDuration();
+
+				if (load >= vehicle.getCapacity()) {
+					full = Boolean.TRUE;
+				}
+			}
+
+			/*
+			 * Generate the new route
+			 */
+			Route route = new Route();
+			route.setIndex(vehicleNumber - 1);
+			route.setCustomers(routeCustomers);
+			route.setAssignedVehicle(vehicle);
+			route.setDepot(depot);
+
+			routes[vehicleNumber - 1] = route;
+			vehicleNumber++;
+
+			// if there aren't other customers than exit
+			if (customers.size() == 0) {
+				stop = Boolean.TRUE;
+			}
+		}
+
+	} // end function
 	/**
 	 * Alternative way to generate an initial solution. Is different from the previous one, because
 	 * it accepts a random initial customer
@@ -537,6 +656,11 @@ public class MySolution extends SolutionAdapter {
 					}
 				}
 			}
+			if (savings.size() == 0) {
+				if (customers.size() == 1) {
+					routeCustomers.add(customers.get(0));
+				}
+			}
 			if (load == vehicle.getCapacity() || count >= savings.size()) {
 				Route route = new Route();
 				route.setAssignedVehicle(vehicle);
@@ -554,8 +678,8 @@ public class MySolution extends SolutionAdapter {
 				customerInserted = new ArrayList<>();
 				firstTime = Boolean.TRUE;
 				savings = generateSavings(customers);
-				count = 0;
 				load = 0;
+				count = 0;
 			}
 			if (customers.size() == 0) {
 				stop = Boolean.TRUE;
@@ -590,7 +714,7 @@ public class MySolution extends SolutionAdapter {
 
 			@Override
 			public int compare(Saving arg0, Saving arg1) {
-				return Double.compare(arg0.getSaving(), arg1.getSaving());
+				return -Double.compare(arg0.getSaving(), arg1.getSaving());
 			}
 
 		});

@@ -171,13 +171,13 @@ public class Route {
 			cost.setWaitingTime(cost.getWaitingTime() + currentCustomer.getWaitingTime());
 			
 			currentCustomer.setTwViol(Math.max(0, currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
-			cost.addTwViol(cost.getTwViol() + currentCustomer.getTwViol());
+			cost.addTwViol(currentCustomer.getTwViol());
 		}
 		
 		cost.setTravelTime(cost.getTravelTime() + currentCustomer.getDistance(depot.getXCoordinate(), depot.getYCoordinate()));
 		cost.setReturnToDepotTime(cost.getTravelTime());
 		cost.setDepotTwViol(Math.max(0, cost.getReturnToDepotTime() - depot.getEndTw()));
-		cost.addTwViol(cost.getTwViol() + cost.getDepotTwViol());
+		cost.addTwViol(cost.getDepotTwViol());
 		
 		cost.setLoadViol(Math.max(0, cost.getLoad() - maxAllowedLoad));
 		cost.calculateTotal(alpha, beta, gamma);

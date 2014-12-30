@@ -48,7 +48,6 @@ public class MyTwoExchangeMove implements Move {
 		evaluateNewRoutes(routeFirst, routeSecond, this.getFirstCustomer(),
 				this.getSecondCustomer());
 		sol.calculateCost();
-		;
 	}
 
 	/**
