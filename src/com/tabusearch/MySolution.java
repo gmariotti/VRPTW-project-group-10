@@ -28,7 +28,7 @@ public class MySolution extends SolutionAdapter {
 	private Cost		cost;
 
 	// this parameter helps limit the number of customers per route
-	private double		routeLimitFactor				= 1.5;
+	private double		routeLimitFactor				= 1.75;
 
 	/**
 	 * Default constructor for MySolution Class. It does nothing. If you want to generate an initial
@@ -544,8 +544,7 @@ public class MySolution extends SolutionAdapter {
 			customerPrint += customers.size();
 		}
 		System.out.println("Customer number " + customerPrint);
-		// System.out.println("Cost with penalty: " + this.getObjectiveValue()[0]);
-		// System.out.println("Cost without penalty: " + this.getObjectiveValue()[1]);
+		System.out.println("The total cost is: " + cost.getTotal());
 	}
 
 	public Cost getCost() {

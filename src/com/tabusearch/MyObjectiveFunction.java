@@ -94,8 +94,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 
 	/*
 	 * Calculates the full cost of the supplied route from the depot to all customers and finally
-	 * back to the depot. TODO -> update all distances by using the getDistance method of the
-	 * Instance class.
+	 * back to the depot. 
 	 */
 
 	public void calculateRouteCost(Route route) {
