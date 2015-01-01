@@ -68,8 +68,6 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 
 			route.calculateCost(route.getAssignedVehicle().getCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
 
-			calculateRouteCost(route);
-
 			addCostToTotal(totalSolutionCost, route.getCost());
 		}
 
@@ -90,68 +88,6 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 		totalCost.addDepotTwViol(cost.getDepotTwViol());
 
 		totalCost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
-	}
-
-	/*
-	 * Calculates the full cost of the supplied route from the depot to all customers and finally
-	 * back to the depot. 
-	 */
-
-	public void calculateRouteCost(Route route) {
-		Cost cost = new Cost();
-		List<Customer> customers = route.getCustomers();
-		Customer previousCustomer;
-		Customer currentCustomer = customers.get(0);
-		Depot depot = route.getDepot();
-
-		cost.setTravelTime(instance.getTravelTime(instance.getCustomersNr(),
-				currentCustomer.getNumber()));
-
-		cost.setLoad(currentCustomer.getLoad());
-		cost.setServiceTime(currentCustomer.getServiceDuration());
-
-		currentCustomer.setArriveTime(depot.getStartTw() + cost.getTravelTime());
-
-		currentCustomer.setWaitingTime(Math.max(0,
-				currentCustomer.getStartTw() - currentCustomer.getArriveTime()));
-		cost.setWaitingTime(currentCustomer.getWaitingTime());
-
-		currentCustomer.setTwViol(Math.max(0,
-				currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
-		cost.addTwViol(currentCustomer.getTwViol());
-
-		for (int i = 1; i < customers.size(); i++) {
-			previousCustomer = currentCustomer;
-			currentCustomer = customers.get(i);
-
-			cost.setTravelTime(cost.getTravelTime()
-					+ instance.getTravelTime(previousCustomer.getNumber(),
-							currentCustomer.getNumber()));
-			cost.setLoad(cost.getLoad() + currentCustomer.getLoad());
-			cost.setServiceTime(cost.getServiceTime() + currentCustomer.getServiceDuration());
-
-			currentCustomer.setArriveTime(previousCustomer.getDepartureTime()
-					+ cost.getTravelTime());
-
-			currentCustomer.setWaitingTime(Math.max(0, currentCustomer.getStartTw()
-					- currentCustomer.getArriveTime()));
-			cost.setWaitingTime(cost.getWaitingTime() + currentCustomer.getWaitingTime());
-
-			currentCustomer.setTwViol(Math.max(0,
-					currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
-			cost.addTwViol(cost.getTwViol() + currentCustomer.getTwViol());
-		}
-
-		cost.setTravelTime(cost.getTravelTime()
-				+ instance.getTravelTime(currentCustomer.getNumber(), instance.getCustomersNr()));
-		cost.setReturnToDepotTime(cost.getTravelTime());
-		cost.setDepotTwViol(Math.max(0, cost.getReturnToDepotTime() - depot.getEndTw()));
-		cost.addTwViol(cost.getTwViol() + cost.getDepotTwViol());
-
-		cost.setLoadViol(Math.max(0, cost.getLoad() - instance.getCapacity(0)));
-		cost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
-
-		route.setCost(cost);
 	}
 
 	/*
