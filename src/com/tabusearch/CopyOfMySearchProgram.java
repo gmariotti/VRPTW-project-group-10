@@ -10,7 +10,7 @@ import java.util.List;
 import org.coinor.opents.*;
 
 import com.tabusearch.MySolution;
-import com.tabusearch.MySearchProgram;
+import com.tabusearch.CopyOfMySearchProgram;
 import com.vrptw.Cost;
 import com.vrptw.Customer;
 import com.vrptw.Instance;
@@ -21,7 +21,7 @@ import com.vrptw.Vehicle;
  * This class implements the TabuSearchListener for the execution of the Tabu Search implementation
  */
 @SuppressWarnings("serial")
-public class MySearchProgram implements TabuSearchListener {
+public class CopyOfMySearchProgram implements TabuSearchListener {
 	private final int DEFAULT_BLOCK_LIST_SIZE	= 4;
 	
 	public TabuSearch	tabuSearch;
@@ -53,11 +53,6 @@ public class MySearchProgram implements TabuSearchListener {
 	private int[] 			blockSplitList;
 	private int				blockSplitCount;
 	
-	private double 			low			= 1 / 12;
-	private double 			lowMiddle	= 1 / 5;	
-	private double 			highMiddle	= 3 / 5;
-	private double 			high		= 4 / 5;
-	
 	private Instance	instance;
 	private Route[]		feasibleRoutes;	// stores the routes of the feasible solution
 	private Cost		feasibleCost;		// stores the total cost of the feasible solution
@@ -72,7 +67,7 @@ public class MySearchProgram implements TabuSearchListener {
 	/**
 	 * Considered other parameters that can be used
 	 */
-	public MySearchProgram(Instance instance, Solution initialSol, MoveManager moveManager,
+	public CopyOfMySearchProgram(Instance instance, Solution initialSol, MoveManager moveManager,
 			ObjectiveFunction objFunc, TabuList tabuList, boolean minmax, PrintStream outPrintStream) {
 		tabuSearch = new SingleThreadedTabuSearch(initialSol, moveManager, objFunc, tabuList,
 				new BestEverAspirationCriteria(), minmax);
@@ -106,6 +101,80 @@ public class MySearchProgram implements TabuSearchListener {
 		
 		blockCombineCount = 0;
 		blockSplitCount = 0;
+	}
+
+	public void correction() {
+		solution = (MySolution) tabuSearch.getCurrentSolution();
+		Route[] routes = solution.getRoutes();
+		int param = (int) Math.sqrt(instance.getVehicleCapacity() * instance.getVehiclesNr()
+				/ (2 * instance.getCustomersNr()));
+
+		/*
+		 * I delete all the routes that have customers less than a param, given by the number of
+		 * routes created
+		 */
+		List<Customer> toAssign = new ArrayList<>();
+		List<Route> toDelete = new ArrayList<>();
+		for (int i = 0; i < routes.length; i++) {
+			Route route = routes[i];
+			List<Customer> customers = route.getCustomers();
+			if (customers.size() <= param) {
+				for (Customer customer : customers) {
+					toAssign.add(customer);
+				}
+				toDelete.add(route);
+			}
+		}
+
+		if (toDelete.size() > 0) {
+
+			routes = solution.removeRoutes(routes, toDelete);
+
+			/*
+			 * All the customers in the list as to be reassigned to the other routes
+			 */
+			for (int i = 0; i < routes.length; i++) {
+				List<Customer> customers = routes[i].getCustomers();
+				Cost cost = routes[i].getCost();
+				Vehicle vehicle = routes[i].getAssignedVehicle();
+				int index = 0;
+				while (cost.getLoad() < vehicle.getCapacity() && index < toAssign.size()) {
+					boolean cycle = true;
+					while (cycle && index < toAssign.size()) {
+						if (cost.getLoad() + toAssign.get(index).getLoad() < vehicle.getCapacity()) {
+							customers.add(toAssign.get(index));
+							cost.setLoad(cost.getLoad() + toAssign.get(index).getLoad());
+							cycle = false;
+							toAssign.remove(index);
+						} else {
+							index++;
+						}
+					}
+				}
+			}
+		}
+
+		/*
+		 * TEST
+		 */
+		int totCust = 0;
+		for (Route route : routes) {
+			totCust += route.getCustomers().size();
+		}
+		System.out.println("Tot customers after correction " + totCust);
+
+		// reorder the index of the routes and of the vehicle
+		int index = 0;
+		for (Route route : routes) {
+			route.setIndex(index);
+			route.getAssignedVehicle().setVehicleNr(index + 1);
+			index++;
+			route.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
+					instance.getBeta(), instance.getGamma());
+		}
+
+		solution.setRoutes(routes);
+		solution.calculateCost();
 	}
 
 	/*
@@ -156,6 +225,7 @@ public class MySearchProgram implements TabuSearchListener {
 		if (solution.isFeasible()
 				&& solution.getCost().getTotal() < bestSolution.getCost().getTotal()) {
 			bestSolution = (MySolution) solution.clone();
+			// bestSolution.print();
 		}
 	}
 
@@ -191,6 +261,7 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void unimprovingMoveMade(TabuSearchEvent e) {
+		System.out.println("Unimproving Move made in iterations " + this.tabuSearch.getIterationsCompleted());
 	}
 
 	/*
@@ -198,6 +269,7 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void improvingMoveMade(TabuSearchEvent e) {
+		System.out.println("Improving Move made in iteration " + this.tabuSearch.getIterationsCompleted());
 	}
 
 	/*
@@ -205,11 +277,13 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void noChangeInValueMoveMade(TabuSearchEvent e) {
-//		count++;
-//		if (count == 1) {
-//			Granular.setGranularity((MySolution) this.tabuSearch.getBestSolution());
-//			count = 0;
-//		}
+		System.out.println("No change in the overall value made in iteration " + this.tabuSearch.getIterationsCompleted());
+		count++;
+		if (count == 1) {
+			Granular.setGranularity((MySolution) this.tabuSearch.getBestSolution());
+			this.correction();
+			count = 0;
+		}
 
 		solution = (MySolution) this.tabuSearch.getCurrentSolution();
 		MySolution splitSolution = null;
@@ -227,33 +301,19 @@ public class MySearchProgram implements TabuSearchListener {
 		 *   Tune the following two parameters by changing their constants to decide the range of
 		 *  number of routes you want.
 		 */
-		int minRange = (int) (instance.getVehiclesNr() * low);
-		int minGoodRange = (int) (instance.getVehiclesNr() * lowMiddle);
-		int maxGoodRange = (int) (instance.getVehiclesNr() * highMiddle);
-		int maxRange = (int) (instance.getVehiclesNr() * high);
+		int minRoutes = instance.getVehiclesNr() * 2 / 5;
+		int maxRoutes = instance.getVehiclesNr() * 4 / 6;
+		int middlePoint = (minRoutes + maxRoutes) / 2;
+		int currentRoutes = solution.getRoutes().length;
 		
-		int currentNumberOfRoutes = solution.getRoutes().length;
-				
 		double heavyPenalty = 0.8;
-		double lightPenalty = 0.4;
+		double lightPenalty = 0.3;
 		
+		splitFactor += (currentRoutes > middlePoint && currentRoutes <= maxRoutes ? (currentRoutes - middlePoint + 1) * lightPenalty : 0);
+		combineFactor += (currentRoutes < middlePoint && currentRoutes >= minRoutes ? (middlePoint - currentRoutes + 1) * lightPenalty : 0);
 		
-		if(currentNumberOfRoutes <= minRange)
-		{
-			combineFactor += (minRange - currentNumberOfRoutes + 1) * heavyPenalty + (minGoodRange - minRange) * lightPenalty;
-		}
-		else if(currentNumberOfRoutes > minRange && currentNumberOfRoutes < minGoodRange)
-		{
-			combineFactor += (minGoodRange - currentNumberOfRoutes) * lightPenalty;
-		}
-		else if(currentNumberOfRoutes > maxGoodRange && currentNumberOfRoutes < maxRange)
-		{
-			splitFactor += (currentNumberOfRoutes - maxRange) * lightPenalty;
-		}
-		else if(currentNumberOfRoutes >= maxRange)
-		{
-			splitFactor += (currentNumberOfRoutes - maxRange + 1) * heavyPenalty + (maxRange - maxGoodRange) * lightPenalty;
-		}
+		splitFactor += (currentRoutes > maxRoutes ? (currentRoutes - maxRoutes) * heavyPenalty : 0);
+		combineFactor += (currentRoutes < minRoutes ? (minRoutes - currentRoutes) * heavyPenalty : 0); 
 		
 		if (skip == false) {
 			if (!noCombine) {
@@ -272,8 +332,7 @@ public class MySearchProgram implements TabuSearchListener {
 				reverseSplit = false;
 			} else {
 				// TODO -> find a better condition to help the solution converge to an optimal solution
-				if (splitSolution.getCost().getTotal() * splitFactor
-					< combineSolution.getCost().getTotal() * combineFactor) {
+				if (splitSolution.getCost().getTotal() < combineSolution.getCost().getTotal()) {
 					this.tabuSearch.setCurrentSolution(splitSolution);
 					reverseCombine = true;
 				} else {
@@ -281,8 +340,6 @@ public class MySearchProgram implements TabuSearchListener {
 					reverseSplit = true;
 				}
 			}
-			
-			this.newBestSolutionFound(e);
 			
 			if(reverseCombine && !noCombine){
 				reverseLastCombineMove();

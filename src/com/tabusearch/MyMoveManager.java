@@ -97,7 +97,8 @@ public class MyMoveManager implements MoveManager {
 							Customer otherCustomer = otherCustomers.get(l);
 							if (customer.getDistance(otherCustomer.getXCoordinate(),
 									otherCustomer.getYCoordinate()) < Granular
-									.getGranularityThreshold()) {
+									.getGranularityThreshold()) 
+							{
 								Move move = new MyTwoExchangeMove(MyMoveManager.getInstance(),
 										customer, otherCustomer, i, k);
 								moves.add(move);

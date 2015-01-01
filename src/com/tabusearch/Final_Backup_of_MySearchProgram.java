@@ -186,13 +186,13 @@ public class Final_Backup_of_MySearchProgram implements TabuSearchListener {
 		 *   Tune the following two parameters by changing their constants to decide the range of
 		 *  number of routes you want.
 		 */
-		int minRoutes = instance.getVehiclesNr() / 2;
-		int maxRoutes = instance.getVehiclesNr() * 2 / 3;
+		int minRoutes = instance.getVehiclesNr() * 2 / 5;
+		int maxRoutes = instance.getVehiclesNr() * 4 / 6;
 		int middlePoint = (minRoutes + maxRoutes) / 2;
 		int currentRoutes = solution.getRoutes().length;
 		
-		double heavyPenalty = 0.4;
-		double lightPenalty = 0.1;
+		double heavyPenalty = 0.8;
+		double lightPenalty = 0.3;
 		
 		splitFactor += (currentRoutes > middlePoint && currentRoutes <= maxRoutes ? (currentRoutes - middlePoint + 1) * lightPenalty : 0);
 		combineFactor += (currentRoutes < middlePoint && currentRoutes >= minRoutes ? (middlePoint - currentRoutes + 1) * lightPenalty : 0);
@@ -211,6 +211,7 @@ public class Final_Backup_of_MySearchProgram implements TabuSearchListener {
 			
 			if (noCombine) {// the combine move cannot be implemented
 				this.tabuSearch.setCurrentSolution(splitSolution);
+			
 				reverseCombine = false;
 			} else if (noSplit) {// the split move cannot be implemented
 				this.tabuSearch.setCurrentSolution(combineSolution);
@@ -226,6 +227,8 @@ public class Final_Backup_of_MySearchProgram implements TabuSearchListener {
 					reverseSplit = true;
 				}
 			}
+			
+			this.newBestSolutionFound(e);
 			
 			if(reverseCombine && !noCombine){
 				reverseLastCombineMove();
@@ -547,8 +550,14 @@ public class Final_Backup_of_MySearchProgram implements TabuSearchListener {
 			if (customerNumber <= 1  || blockSplit[i][sol.getRoutes().length - 1]) {
 				costPerCustomer[i] = Double.NEGATIVE_INFINITY;
 			} else {
-				costPerCustomer[i] = (routes[i].getCost().getTotal() / customerNumber)
-						* (1 + factor * customerNumber);
+				if(routes[i].getCost().checkFeasible()){
+					costPerCustomer[i] = (routes[i].getCost().getTotal() / customerNumber)
+							* (1 + factor * customerNumber);
+				}
+				else
+				{
+					costPerCustomer[i] = Double.POSITIVE_INFINITY;
+				}
 			}
 
 			if (maxCostPerCustomer < costPerCustomer[i]) {
