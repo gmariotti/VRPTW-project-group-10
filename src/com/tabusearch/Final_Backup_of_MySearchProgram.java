@@ -179,6 +179,27 @@ public class Final_Backup_of_MySearchProgram implements TabuSearchListener {
 		boolean reverseCombine = false;
 		boolean reverseSplit = false;
 		
+		double splitFactor = 1;
+		double combineFactor = 1;
+		
+		/*
+		 *   Tune the following two parameters by changing their constants to decide the range of
+		 *  number of routes you want.
+		 */
+		int minRoutes = instance.getVehiclesNr() / 2;
+		int maxRoutes = instance.getVehiclesNr() * 2 / 3;
+		int middlePoint = (minRoutes + maxRoutes) / 2;
+		int currentRoutes = solution.getRoutes().length;
+		
+		double heavyPenalty = 0.4;
+		double lightPenalty = 0.1;
+		
+		splitFactor += (currentRoutes > middlePoint && currentRoutes <= maxRoutes ? (currentRoutes - middlePoint + 1) * lightPenalty : 0);
+		combineFactor += (currentRoutes < middlePoint && currentRoutes >= minRoutes ? (middlePoint - currentRoutes + 1) * lightPenalty : 0);
+		
+		splitFactor += (currentRoutes > maxRoutes ? (currentRoutes - maxRoutes) * heavyPenalty : 0);
+		combineFactor += (currentRoutes < minRoutes ? (minRoutes - currentRoutes) * heavyPenalty : 0); 
+		
 		if (skip == false) {
 			if (!noCombine) {
 				combineSolution = performCombine();
@@ -196,7 +217,8 @@ public class Final_Backup_of_MySearchProgram implements TabuSearchListener {
 				reverseSplit = false;
 			} else {
 				// TODO -> find a better condition to help the solution converge to an optimal solution
-				if (splitSolution.getCost().getTotal() < combineSolution.getCost().getTotal()) {
+				if (splitSolution.getCost().getTotal() * splitFactor 
+					< combineSolution.getCost().getTotal() * combineFactor) {
 					this.tabuSearch.setCurrentSolution(splitSolution);
 					reverseCombine = true;
 				} else {
