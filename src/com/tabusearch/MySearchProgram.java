@@ -22,48 +22,48 @@ import com.vrptw.Vehicle;
  */
 @SuppressWarnings("serial")
 public class MySearchProgram implements TabuSearchListener {
-	private final int DEFAULT_BLOCK_LIST_SIZE	= 4;
-	
-	public TabuSearch	tabuSearch;
-	private MySolution	solution;
-	private MySolution	bestSolution;
-	private MySolution	previousSolution;
-	
+	private final int		DEFAULT_BLOCK_LIST_SIZE	= 4;
+
+	public TabuSearch		tabuSearch;
+	private MySolution		solution;
+	private MySolution		bestSolution;
+	private MySolution		previousSolution;
+
 	/*
-	 * 	These parameters help with disallowing cycles when combining routes.
-	 * The 3 dimensions are explained as follows the first stores the index of
-	 * the first route to be combined the second dimension represents the index
-	 * of the second route and finally the third represent the total number of 
-	 * routes at the time. So, e.g. if we merged routes 3 and 5 when we had 23 
-	 * total routes we would also write the following.
-	 * 		
-	 * 		blockCombine[3][5][23] = true;
-	 *  
-	 *  This is done to be able to fully "describe" the move.
+	 * These parameters help with disallowing cycles when combining routes. The 3 dimensions are
+	 * explained as follows the first stores the index of the first route to be combined the second
+	 * dimension represents the index of the second route and finally the third represent the total
+	 * number of routes at the time. So, e.g. if we merged routes 3 and 5 when we had 23 total
+	 * routes we would also write the following. blockCombine[3][5][23] = true; This is done to be
+	 * able to fully "describe" the move.
 	 */
 	private boolean[][][]	blockCombine;
-	private int[] 			blockCombineList;
+	private int[]			blockCombineList;
 	private int				blockCombineCount;
-	
-	
+
 	/*
-	 *   The following parameters are used similarly to stop certain routes from
-	 *  being split.
+	 * The following parameters are used similarly to stop certain routes from being split.
 	 */
 	private boolean[][]		blockSplit;
-	private int[] 			blockSplitList;
+	private int[]			blockSplitList;
 	private int				blockSplitCount;
-	
-	private Instance	instance;
-	private Route[]		feasibleRoutes;	// stores the routes of the feasible solution
-	private Cost		feasibleCost;		// stores the total cost of the feasible solution
-	private Route[]		bestRoutes;		// stores the routes of the best solution
-	private Cost		bestCost;			// stores the total cost of the best solution
-	private Route[]		currentRoutes;		// stores the routes of the current solution
-	private Cost		currentCost;		// stores the total cost of the current solution
 
-	public int			count	= 0;
-	private boolean		skip	= false;
+	private Instance		instance;
+	private Route[]			feasibleRoutes;					// stores the routes of the feasible
+																// solution
+	private Cost			feasibleCost;						// stores the total cost of the
+																// feasible solution
+	private Route[]			bestRoutes;						// stores the routes of the best
+																// solution
+	private Cost			bestCost;							// stores the total cost of the best
+																// solution
+	private Route[]			currentRoutes;						// stores the routes of the current
+																// solution
+	private Cost			currentCost;						// stores the total cost of the
+																// current solution
+
+	public int				count					= 0;
+	private boolean			skip					= false;
 
 	/**
 	 * Considered other parameters that can be used
@@ -80,26 +80,25 @@ public class MySearchProgram implements TabuSearchListener {
 		solution = (MySolution) initialSol;
 		bestSolution = new MySolution(instance);
 		bestSolution.getCost().setTotal(Double.POSITIVE_INFINITY);
-		
+
 		int maxVehicleNumber = instance.getVehiclesNr();
-		
+
 		blockCombine = new boolean[maxVehicleNumber][maxVehicleNumber][maxVehicleNumber];
 		blockSplit = new boolean[maxVehicleNumber][maxVehicleNumber];
-		
+
 		/*
-		 *   By default the above are filled with null values so we don't need to
-		 *  initialize them to false.
+		 * By default the above are filled with null values so we don't need to initialize them to
+		 * false.
 		 */
-		
+
 		blockCombineList = new int[DEFAULT_BLOCK_LIST_SIZE];
 		blockSplitList = new int[DEFAULT_BLOCK_LIST_SIZE];
-		
-		for(int i = 0; i < DEFAULT_BLOCK_LIST_SIZE; i++)
-		{
+
+		for (int i = 0; i < DEFAULT_BLOCK_LIST_SIZE; i++) {
 			blockCombineList[i] = -1;
 			blockSplitList[i] = -1;
 		}
-		
+
 		blockCombineCount = 0;
 		blockSplitCount = 0;
 	}
@@ -197,9 +196,11 @@ public class MySearchProgram implements TabuSearchListener {
 		feasibleCost = bestCost;
 		if (!feasibleCost.checkFeasible()) {
 			feasibleCost.setTotal(Double.POSITIVE_INFINITY);
+		} else {
+			feasibleRoutes = cloneRoutes(solution.getRoutes());
+			feasibleCost = new Cost(solution.getCost());
+			bestRoutes = feasibleRoutes;
 		}
-		feasibleRoutes = cloneRoutes(solution.getRoutes());
-		bestRoutes = feasibleRoutes;
 	}
 
 	/*
@@ -264,7 +265,8 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void unimprovingMoveMade(TabuSearchEvent e) {
-		System.out.println("Unimproving Move made in iterations " + this.tabuSearch.getIterationsCompleted());
+		System.out.println("Unimproving Move made in iterations "
+				+ this.tabuSearch.getIterationsCompleted());
 	}
 
 	/*
@@ -272,7 +274,8 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void improvingMoveMade(TabuSearchEvent e) {
-		System.out.println("Improving Move made in iteration " + this.tabuSearch.getIterationsCompleted());
+		System.out.println("Improving Move made in iteration "
+				+ this.tabuSearch.getIterationsCompleted());
 	}
 
 	/*
@@ -280,7 +283,8 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void noChangeInValueMoveMade(TabuSearchEvent e) {
-		System.out.println("No change in the overall value made in iteration " + this.tabuSearch.getIterationsCompleted());
+		System.out.println("No change in the overall value made in iteration "
+				+ this.tabuSearch.getIterationsCompleted());
 		count++;
 		if (count == 1) {
 			Granular.setGranularity((MySolution) this.tabuSearch.getBestSolution());
@@ -290,22 +294,24 @@ public class MySearchProgram implements TabuSearchListener {
 
 		solution = (MySolution) this.tabuSearch.getCurrentSolution();
 		MySolution splitSolution = null;
-		boolean noSplit = solution.getRoutes().length > instance.getVehiclesNr() - 1;
+		boolean noSplit = solution.getRoutes().length > (int) 2 * Math.sqrt(instance.getVehiclesNr()
+				* instance.getCustomersNr() / instance.getVehicleCapacity());
 		MySolution combineSolution = null;
-		boolean noCombine = solution.getRoutes().length <= 1;
-		
+		boolean noCombine = solution.getRoutes().length <= (int) Math.sqrt(instance.getVehiclesNr()
+				* instance.getCustomersNr() / instance.getVehicleCapacity());
+
 		boolean reverseCombine = false;
 		boolean reverseSplit = false;
-		
+
 		if (skip == false) {
 			if (!noCombine) {
 				combineSolution = performCombine();
 			}
-			
+
 			if (!noSplit) {
 				splitSolution = performSplit();
 			}
-			
+
 			if (noCombine) {// the combine move cannot be implemented
 				this.tabuSearch.setCurrentSolution(splitSolution);
 				reverseCombine = false;
@@ -313,7 +319,8 @@ public class MySearchProgram implements TabuSearchListener {
 				this.tabuSearch.setCurrentSolution(combineSolution);
 				reverseSplit = false;
 			} else {
-				// TODO -> find a better condition to help the solution converge to an optimal solution
+				// TODO -> find a better condition to help the solution converge to an optimal
+				// solution
 				if (splitSolution.getCost().getTotal() < combineSolution.getCost().getTotal()) {
 					this.tabuSearch.setCurrentSolution(splitSolution);
 					reverseCombine = true;
@@ -322,17 +329,17 @@ public class MySearchProgram implements TabuSearchListener {
 					reverseSplit = true;
 				}
 			}
-			
-			if(reverseCombine && !noCombine){
+
+			if (reverseCombine && !noCombine) {
 				reverseLastCombineMove();
 				printForbiddenCombineMoves();
 			}
-			
-			if(reverseSplit && !noSplit){
+
+			if (reverseSplit && !noSplit) {
 				reverseLastSplitMove();
 				printForbiddenSplitMoves();
 			}
-			
+
 			skip = true;
 
 			System.out.println("The current solution seen below:");
@@ -347,84 +354,84 @@ public class MySearchProgram implements TabuSearchListener {
 
 	private void printForbiddenSplitMoves() {
 		int vehicleNr = instance.getVehiclesNr();
-		
+
 		System.out.println();
-		
+
 		System.out.println("The following moves are forbidden: ");
-		
-		for(int i = 1; i <= DEFAULT_BLOCK_LIST_SIZE; i++)
-		{
+
+		for (int i = 1; i <= DEFAULT_BLOCK_LIST_SIZE; i++) {
 			int index = (blockSplitCount - i + DEFAULT_BLOCK_LIST_SIZE) % DEFAULT_BLOCK_LIST_SIZE;
-			
-			if(blockSplitList[index] != -1){
+
+			if (blockSplitList[index] != -1) {
 				int j = blockSplitList[index] / vehicleNr;
 				int k = blockSplitList[index] % vehicleNr;
-				
-				System.out.println("Element #" + i + " of the list forbids route #" + j + " from being split when there are " + k + " total routes.");
+
+				System.out.println("Element #" + i + " of the list forbids route #" + j
+						+ " from being split when there are " + k + " total routes.");
 			}
 		}
-		
+
 		System.out.println();
-		
+
 	}
 
 	private void printForbiddenCombineMoves() {
 		int vehicleNr = instance.getVehiclesNr();
-		
+
 		System.out.println();
-		
+
 		System.out.println("The following moves are forbidden: ");
-		
-		for(int l = 1; l < DEFAULT_BLOCK_LIST_SIZE; l++)
-		{
+
+		for (int l = 1; l < DEFAULT_BLOCK_LIST_SIZE; l++) {
 			int index = (blockCombineCount - l + DEFAULT_BLOCK_LIST_SIZE) % DEFAULT_BLOCK_LIST_SIZE;
-			
-			if(blockCombineList[index] != -1) {
+
+			if (blockCombineList[index] != -1) {
 				int i = blockCombineList[index] / (vehicleNr * vehicleNr);
 				int j = blockCombineList[index] % (vehicleNr * vehicleNr);
 				int k = j % vehicleNr;
 				j /= vehicleNr;
-				
-				System.out.println("Element #" + l + " of the list forbids route #" + i + " and #" + j);
+
+				System.out.println("Element #" + l + " of the list forbids route #" + i + " and #"
+						+ j);
 				System.out.println("from being combined when there are " + k + " total routes.");
 			}
 		}
-		
+
 		System.out.println();
 
 	}
 
-	private void reverseLastSplitMove() 
-	{
+	private void reverseLastSplitMove() {
 		int vehicleNr = instance.getVehiclesNr();
-		
+
 		// reverse the count
 		blockSplitCount = (blockSplitCount - 1 + DEFAULT_BLOCK_LIST_SIZE) % DEFAULT_BLOCK_LIST_SIZE;
-		
+
 		// reverse the blockSplit value
 		int i = blockSplitList[blockSplitCount] / vehicleNr;
 		int j = blockSplitList[blockSplitCount] % vehicleNr;
-		
+
 		blockSplit[i][j] = false;
-		
+
 		// reverse the last move made in the forbidden list
 		blockSplitList[blockSplitCount] = -1;
 	}
 
 	private void reverseLastCombineMove() {
 		int vehicleNr = instance.getVehiclesNr();
-		
+
 		// reverse the count
-		blockCombineCount = (blockCombineCount - 1 + DEFAULT_BLOCK_LIST_SIZE) % DEFAULT_BLOCK_LIST_SIZE;
-				
+		blockCombineCount = (blockCombineCount - 1 + DEFAULT_BLOCK_LIST_SIZE)
+				% DEFAULT_BLOCK_LIST_SIZE;
+
 		// reverse the blockSplit value
 		int i = blockCombineList[blockCombineCount] / (vehicleNr * vehicleNr);
 		int j = blockCombineList[blockCombineCount] % (vehicleNr * vehicleNr);
 		int k = j % vehicleNr;
-		j /= vehicleNr; 
-		
+		j /= vehicleNr;
+
 		blockCombine[i][j][k] = false;
-				
+
 		// reverse the last move made in the forbidden list
 		blockCombineList[blockCombineCount] = -1;
 	}
@@ -475,58 +482,59 @@ public class MySearchProgram implements TabuSearchListener {
 				}
 			}
 		}
-		
+
 		int counter = 0;
-		
-		while(counter < size - 2)
-		{
-			int min = (indexes[0 + counter] < indexes[1 + counter] ? indexes[0 + counter] : indexes[1 + counter]);
-			int max = (indexes[0 + counter] < indexes[1 + counter] ? indexes[1 + counter] : indexes[0 + counter]);
+
+		while (counter < size - 2) {
+			int min = (indexes[0 + counter] < indexes[1 + counter] ? indexes[0 + counter]
+					: indexes[1 + counter]);
+			int max = (indexes[0 + counter] < indexes[1 + counter] ? indexes[1 + counter]
+					: indexes[0 + counter]);
 			// choose the best combination of indexes that isn't forbidden
-			if(!blockCombine[min][max][sol.getRoutes().length - 1])
-			{
+			if (!blockCombine[min][max][sol.getRoutes().length - 1]) {
 				indexes[0] = indexes[0 + counter];
 				indexes[1] = indexes[1 + counter];
 				break;
 			}
-			
+
 			counter++;
 		}
-		
+
 		// get the lowest index among the chosen routes
 		int minIndex = (indexes[0] < indexes[1] ? indexes[0] : indexes[1]);
 		// get the highest index among the chosen routes
 		int maxIndex = (indexes[0] < indexes[1] ? indexes[1] : indexes[0]);
-		
-		
+
 		// if the maximum number of moves recorded has been reached erase the last move made
-		if(blockCombineList[blockCombineCount] != -1)		
-		{
+		if (blockCombineList[blockCombineCount] != -1) {
 			// find the move
-			int i = (blockCombineList[blockCombineCount]) / (instance.getVehiclesNr() * instance.getVehiclesNr());
-			int j = blockCombineList[blockCombineCount] % (instance.getVehiclesNr() * instance.getVehiclesNr());
+			int i = (blockCombineList[blockCombineCount])
+					/ (instance.getVehiclesNr() * instance.getVehiclesNr());
+			int j = blockCombineList[blockCombineCount]
+					% (instance.getVehiclesNr() * instance.getVehiclesNr());
 			int k = j % instance.getVehiclesNr();
 			j /= instance.getVehiclesNr();
-							
+
 			blockCombine[i][j][k] = false;
 		}
-				
-		/* 
-		 *  Information used to store the exact move that was blocked in this specific iteration.
-		 * This can be later used to reset the move to false when it is time to remove it. 
+
+		/*
+		 * Information used to store the exact move that was blocked in this specific iteration.
+		 * This can be later used to reset the move to false when it is time to remove it.
 		 */
-		blockCombineList[blockCombineCount] = minIndex * instance.getVehiclesNr() * instance.getVehiclesNr() 
-											+ maxIndex * instance.getVehiclesNr() + sol.getRoutes().length - 1;
-		
+		blockCombineList[blockCombineCount] = minIndex * instance.getVehiclesNr()
+				* instance.getVehiclesNr() + maxIndex * instance.getVehiclesNr()
+				+ sol.getRoutes().length - 1;
+
 		// to keep the range of values between 0 (inclusive) and the maximum (exclusive);
 		blockCombineCount = (blockCombineCount + 1) % DEFAULT_BLOCK_LIST_SIZE;
-						
+
 		// Record the move that must be blocked in subsequent iterations
 		blockCombine[minIndex][maxIndex][sol.getRoutes().length - 1] = true;
-		
+
 		// in the rare case all possible moves are not possible
-		
-		if(counter == size - 2)		// no move was found
+
+		if (counter == size - 2) // no move was found
 		{
 			Cost cost = new Cost();
 			cost.setTotal(Double.POSITIVE_INFINITY);
@@ -555,7 +563,7 @@ public class MySearchProgram implements TabuSearchListener {
 		newCost.add(varCost);
 		newCost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
 		sol.setCost(newCost);
-				
+
 		/*
 		 * Correct the routes in the solution by removing the route in the highest index and
 		 * substitute it with the following routes.
@@ -634,13 +642,13 @@ public class MySearchProgram implements TabuSearchListener {
 		for (int i = 0; i < size; i++) {
 			int customerNumber = routes[i].getCustomers().size();
 			indexes[i] = i;
-			
+
 			/*
-			 *  If the route is forbidden either due to the fact that it is one customer long
-			 * or because it has been blocked by the block split matrix the costPerCustomer
-			 * is given a negative infinity value so as not to be picked.
+			 * If the route is forbidden either due to the fact that it is one customer long or
+			 * because it has been blocked by the block split matrix the costPerCustomer is given a
+			 * negative infinity value so as not to be picked.
 			 */
-			if (customerNumber <= 1  || blockSplit[i][sol.getRoutes().length - 1]) {
+			if (customerNumber <= 1 || blockSplit[i][sol.getRoutes().length - 1]) {
 				costPerCustomer[i] = Double.NEGATIVE_INFINITY;
 			} else {
 				costPerCustomer[i] = (routes[i].getCost().getTotal() / customerNumber)
@@ -652,23 +660,23 @@ public class MySearchProgram implements TabuSearchListener {
 				maxIndex = i;
 			}
 		}
-		
-		if(blockSplitList[blockSplitCount] != -1)	
-		{
+
+		if (blockSplitList[blockSplitCount] != -1) {
 			// find the move
 			int i = blockSplitList[blockSplitCount] / instance.getVehiclesNr();
 			int j = blockSplitList[blockSplitCount] % instance.getVehiclesNr();
-			
+
 			blockSplit[i][j] = false;
 		}
-		
-		blockSplitList[blockSplitCount] = maxIndex * instance.getVehiclesNr() + sol.getRoutes().length - 1;
-		
+
+		blockSplitList[blockSplitCount] = maxIndex * instance.getVehiclesNr()
+				+ sol.getRoutes().length - 1;
+
 		// to keep the range of values between 0 (inclusive) and the maximum (exclusive);
 		blockSplitCount = (blockSplitCount + 1) % DEFAULT_BLOCK_LIST_SIZE;
-		
+
 		blockSplit[maxIndex][sol.getRoutes().length - 1] = true;
-		
+
 		Route routeToBeSplit = sol.getRoutes(maxIndex);
 		List<Customer> customers = routeToBeSplit.getCustomers();
 
@@ -701,13 +709,13 @@ public class MySearchProgram implements TabuSearchListener {
 		 * customers that don't cause time window constraint violation.
 		 */
 
-//		for (int i = 0; i < customers.size(); i++) {
-//			if (i % 2 == 0) {
-//				firstRouteCustomers.add(new Customer(customers.get(i)));
-//			} else {
-//				secondRouteCustomers.add(new Customer(customers.get(i)));
-//			}
-//		}
+		// for (int i = 0; i < customers.size(); i++) {
+		// if (i % 2 == 0) {
+		// firstRouteCustomers.add(new Customer(customers.get(i)));
+		// } else {
+		// secondRouteCustomers.add(new Customer(customers.get(i)));
+		// }
+		// }
 
 		/*
 		 * Approach #2 In this case the index decides where the route will be split and the minimum
@@ -716,54 +724,48 @@ public class MySearchProgram implements TabuSearchListener {
 		 * has more or less the opposite qualities w.r.t. the Approach #1
 		 */
 
-		 Cost minCost = new Cost();
-		 minCost.setTotal(Double.POSITIVE_INFINITY);
-		 int minIndex = -1;
-		
-		 for(int i = 0; i < customers.size() - 1; i++)
-		 {
-			 for(int j = 0; j <= i; j++)
-			 {
-				 firstRouteCustomers.add(new Customer(customers.get(j)));
-			 }
-			 for(int j = i + 1; j < customers.size(); j++)
-			 {
-				 secondRouteCustomers.add(new Customer(customers.get(j)));
-			 }
-		
-		 Route firstRoute = routeToBeSplit.copyRouteInformation();
-		 firstRoute.setCustomers(firstRouteCustomers);
-		 firstRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
-		 instance.getBeta(), instance.getGamma());
-		 Route secondRoute = routeToBeSplit.copyRouteInformation();
-		 secondRoute.setCustomers(secondRouteCustomers);
-		 secondRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
-		 instance.getBeta(), instance.getGamma());
-		
-		 Cost cost = new Cost(firstRoute.getCost());
-		 cost.add(secondRoute.getCost());
-		 cost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
-		
-		 if(minCost.getTotal() > cost.getTotal())
-		 {
-			 minCost = new Cost(cost);
-			 minIndex = i;
-		 }
-		
-		 firstRouteCustomers.clear();
-		 secondRouteCustomers.clear();
-		 }
-		
-		 // reconstruct the solution
-		
-		 for(int i = 0; i <= minIndex; i++)
-		 {
-			 firstRouteCustomers.add(new Customer(customers.get(i)));
-		 }
-		 for(int i = minIndex + 1; i < customers.size(); i++)
-		 {
-			 secondRouteCustomers.add(new Customer(customers.get(i)));
-		 }
+		Cost minCost = new Cost();
+		minCost.setTotal(Double.POSITIVE_INFINITY);
+		int minIndex = -1;
+
+		for (int i = 0; i < customers.size() - 1; i++) {
+			for (int j = 0; j <= i; j++) {
+				firstRouteCustomers.add(new Customer(customers.get(j)));
+			}
+			for (int j = i + 1; j < customers.size(); j++) {
+				secondRouteCustomers.add(new Customer(customers.get(j)));
+			}
+
+			Route firstRoute = routeToBeSplit.copyRouteInformation();
+			firstRoute.setCustomers(firstRouteCustomers);
+			firstRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
+					instance.getBeta(), instance.getGamma());
+			Route secondRoute = routeToBeSplit.copyRouteInformation();
+			secondRoute.setCustomers(secondRouteCustomers);
+			secondRoute.calculateCost(instance.getVehicleCapacity(), instance.getAlpha(),
+					instance.getBeta(), instance.getGamma());
+
+			Cost cost = new Cost(firstRoute.getCost());
+			cost.add(secondRoute.getCost());
+			cost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
+
+			if (minCost.getTotal() > cost.getTotal()) {
+				minCost = new Cost(cost);
+				minIndex = i;
+			}
+
+			firstRouteCustomers.clear();
+			secondRouteCustomers.clear();
+		}
+
+		// reconstruct the solution
+
+		for (int i = 0; i <= minIndex; i++) {
+			firstRouteCustomers.add(new Customer(customers.get(i)));
+		}
+		for (int i = minIndex + 1; i < customers.size(); i++) {
+			secondRouteCustomers.add(new Customer(customers.get(i)));
+		}
 
 		// the following is approach-independent
 

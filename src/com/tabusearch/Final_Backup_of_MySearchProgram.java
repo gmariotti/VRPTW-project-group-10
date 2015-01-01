@@ -6,6 +6,7 @@ package com.tabusearch;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.coinor.opents.*;
 
 import com.tabusearch.MySolution;
@@ -172,9 +173,13 @@ public class Final_Backup_of_MySearchProgram implements TabuSearchListener {
 
 		solution = (MySolution) this.tabuSearch.getCurrentSolution();
 		MySolution splitSolution = null;
-		boolean noSplit = solution.getRoutes().length > instance.getVehiclesNr() - 1;
+		int noSplitParam = (int) Math.sqrt(instance.getVehiclesNr()
+				* instance.getCustomersNr() * 7 / instance.getVehicleCapacity());
+		boolean noSplit = solution.getRoutes().length > noSplitParam;
 		MySolution combineSolution = null;
-		boolean noCombine = solution.getRoutes().length <= 1;
+		int noCombineParam = (int) (2*Math.sqrt(instance.getVehiclesNr()
+				* instance.getCustomersNr() / instance.getVehicleCapacity()));
+		boolean noCombine = solution.getRoutes().length <= noCombineParam;
 		
 		boolean reverseCombine = false;
 		boolean reverseSplit = false;

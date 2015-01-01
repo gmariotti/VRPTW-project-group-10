@@ -17,6 +17,7 @@ public class Instance {
 	private int					depotsNr	= 1;
 	private int					daysNr		= 1;
 	private ArrayList<Customer>	customers	= new ArrayList<>();	// vector of customers;
+	private int					totalDemand	= 0;
 	private Depot				depot;
 	private double[]			durations;
 	private double[]			capacities;
@@ -24,10 +25,10 @@ public class Instance {
 	private Route[]				routes;
 	private Random				random		= new Random();
 	private Parameters			parameters;
-	
-	private double		alpha				= 1;
-	private double		beta				= 1;
-	private double		gamma				= 1;
+
+	private double				alpha		= 1;
+	private double				beta		= 1;
+	private double				gamma		= 1;
 
 	public Instance(Parameters parameters) {
 		this.setParameters(parameters);
@@ -47,7 +48,8 @@ public class Instance {
 	 * Read from file the problem data: D and Q, customers data and depots data. After the variables
 	 * are populated calculates the distances and assign customers to depot.
 	 * 
-	 * @param filename - The name in the input directory from which to read the data.
+	 * @param filename
+	 *            - The name in the input directory from which to read the data.
 	 */
 	public void populateFromHombergFile(String filename) {
 		try {
@@ -97,6 +99,7 @@ public class Instance {
 
 				// add customer to customers list
 				customers.add(customer);
+				totalDemand += customer.getLoad();
 				customersNr++;
 			}// end for customers
 			in.close();
@@ -226,6 +229,21 @@ public class Instance {
 	 */
 	public void setCustomers(ArrayList<Customer> customers) {
 		this.customers = customers;
+	}
+
+	/**
+	 * @return the totalDemand
+	 */
+	public int getTotalDemand() {
+		return totalDemand;
+	}
+
+	/**
+	 * @param totalDemand
+	 *            the totalDemand to set
+	 */
+	public void setTotalDemand(int totalDemand) {
+		this.totalDemand = totalDemand;
 	}
 
 	/**

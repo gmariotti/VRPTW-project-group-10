@@ -68,7 +68,7 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 
 			route.calculateCost(route.getAssignedVehicle().getCapacity(), instance.getAlpha(), instance.getBeta(), instance.getGamma());
 
-			calculateRouteCost(route);
+			//calculateRouteCost(route);
 
 			addCostToTotal(totalSolutionCost, route.getCost());
 		}
@@ -139,14 +139,14 @@ public class MyObjectiveFunction implements ObjectiveFunction {
 
 			currentCustomer.setTwViol(Math.max(0,
 					currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
-			cost.addTwViol(cost.getTwViol() + currentCustomer.getTwViol());
+			cost.addTwViol(currentCustomer.getTwViol());
 		}
 
 		cost.setTravelTime(cost.getTravelTime()
 				+ instance.getTravelTime(currentCustomer.getNumber(), instance.getCustomersNr()));
 		cost.setReturnToDepotTime(cost.getTravelTime());
 		cost.setDepotTwViol(Math.max(0, cost.getReturnToDepotTime() - depot.getEndTw()));
-		cost.addTwViol(cost.getTwViol() + cost.getDepotTwViol());
+		cost.addTwViol(cost.getDepotTwViol());
 
 		cost.setLoadViol(Math.max(0, cost.getLoad() - instance.getCapacity(0)));
 		cost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());

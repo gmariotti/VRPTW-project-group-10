@@ -8,6 +8,7 @@ import java.io.PrintStream;
 
 import org.coinor.opents.SimpleTabuList;
 
+import com.tabusearch.Final_Backup_of_MySearchProgram;
 import com.tabusearch.Granular;
 import com.tabusearch.MyMoveManager;
 import com.tabusearch.MyObjectiveFunction;
@@ -24,7 +25,7 @@ public class VRPTW {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		MySearchProgram searchProgram;
+		Final_Backup_of_MySearchProgram searchProgram;
 		MySolution initialSol;
 		MyObjectiveFunction objFunc;
 		MyMoveManager moveManager;
@@ -47,7 +48,7 @@ public class VRPTW {
 			// Init memory for Tabu Search
 			initialSol = new MySolution(instance);
 			objFunc = new MyObjectiveFunction(instance);
-			initialSol.generateInitialSolution();
+			initialSol.generateInitialFeasibleSolution();
 			initialSol.setObjectiveValue(objFunc.evaluate(initialSol, null));
 
 			// temporary just to see if initialSol works
@@ -60,7 +61,7 @@ public class VRPTW {
 			tabuList = new SimpleTabuList(tenure);
 
 			// Create Tabu Search object
-			searchProgram = new MySearchProgram(instance, initialSol, moveManager, objFunc,
+			searchProgram = new Final_Backup_of_MySearchProgram(instance, initialSol, moveManager, objFunc,
 					tabuList, false, outPrintStream);
 
 			// Start solving

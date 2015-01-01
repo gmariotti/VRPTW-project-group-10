@@ -249,6 +249,124 @@ public class MySolution extends SolutionAdapter {
 	} // end function
 
 	/**
+	 * Generate a feasible initial solution
+	 */
+	public void generateInitialFeasibleSolution() {
+		/*
+		 * Initialize the customers arraylist, creating a new customer identical to the one in the
+		 * instace.customers list. In this way we avoid any modification on the main list of
+		 * customer
+		 */
+		List<Customer> customers = new ArrayList<Customer>();
+		for (Customer tmp : this.instance.getCustomers()) {
+			Customer customer = new Customer(tmp);
+			customers.add(customer);
+		}
+
+		/*
+		 * At the beginning, we generate a solution by : - selecting a vehicle - selecting a
+		 * customer, and assign it to the vehicle until it's full - get another vehicle, and do the
+		 * same with the remaining customers. We do not care about time window (yet).
+		 */
+
+		int vehicleNumber = 1; // First vehicle (i is the variable counting the vehicles)
+
+		Boolean stop = Boolean.FALSE; // The stopping condition will be true when there are no
+										// customers left.
+
+		/*
+		 * Each iteration is the creation of a route
+		 */
+		while (!stop) {
+			Depot depot = this.getDepot();
+			List<Double> customersCost = new ArrayList<>();
+			Vehicle vehicle = new Vehicle(vehicleNumber, this.getMaxVehicleCapacity(), 0);
+			double load = 0;
+			double time = 0;
+			for (Customer customer : customers) {
+				// cost from the depot into customersCost
+				double distanceCost = instance.getDistances()[customer.getNumber()][instance.getCustomersNr()];
+				if (distanceCost < customer.getStartTw()) { // I have to wait the opening time
+					customersCost.add((double) customer.getStartTw());
+				} else { // I need more time to arrive compared to the opening time
+					customersCost.add(distanceCost);
+				}
+			}
+			List<Customer> routeCustomers = new ArrayList<>();
+			int index = minimumCost(customersCost);
+			Customer customerToAdd = customers.get(index);
+			// add the customer to the route
+			routeCustomers.add(customerToAdd);
+			load += customerToAdd.getLoad();
+			customers.remove(index); // the list is automatically reordered
+
+			// increment the time
+			time = customersCost.get(index) + customerToAdd.getServiceDuration();
+
+			/*
+			 * Iterate starting from the last customer added
+			 */
+			Boolean full = Boolean.FALSE;
+
+			while (!full || customers.size() > 0) {
+
+				customersCost = new ArrayList<>();
+				for (Customer customer : customers) {
+					// evaluate distance
+					double distanceCost = instance.getDistances()[customer.getNumber()][customerToAdd.getNumber()];
+					// check feasible
+					if ((load + customer.getLoad()) <= vehicle.getCapacity()
+							&& (time + distanceCost) < (customer.getEndTw() - customer
+									.getServiceDuration())) {
+						if ((time + distanceCost) < customer.getStartTw()) { // I have to wait
+							customersCost.add(customer.getStartTw() - time);
+						} else {
+							customersCost.add(distanceCost);
+						}
+					} else {
+						customersCost.add(Double.POSITIVE_INFINITY);
+					}
+				}
+				// if there isn't any feasible customer than I exit
+				if (!feasibleCustomers(customersCost)) {
+					break;
+				}
+				index = minimumCost(customersCost);
+				customerToAdd = customers.get(index);
+				// add the customerToAdd
+				routeCustomers.add(customerToAdd);
+				load += customerToAdd.getLoad();
+				customers.remove(index); // the list is automatically reordered
+
+				// increment the time
+				time += customersCost.get(index) + customerToAdd.getServiceDuration();
+
+				if (load >= vehicle.getCapacity()) {
+					full = Boolean.TRUE;
+				}
+			}
+
+			/*
+			 * Generate the new route
+			 */
+			Route route = new Route();
+			route.setIndex(vehicleNumber - 1);
+			route.setCustomers(routeCustomers);
+			route.setAssignedVehicle(vehicle);
+			route.setDepot(depot);
+
+			routes[vehicleNumber - 1] = route;
+			vehicleNumber++;
+
+			// if there aren't other customers than exit
+			if (customers.size() == 0) {
+				stop = Boolean.TRUE;
+			}
+		}
+
+	} // end function
+
+	/**
 	 * Alternative way to generate an initial solution. Is different from the previous one, because
 	 * it accepts a random initial customer
 	 */
