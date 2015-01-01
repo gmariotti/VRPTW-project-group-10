@@ -266,10 +266,7 @@ public class MySolution extends SolutionAdapter {
 		clonedSolution.gamma = this.gamma;
 		clonedSolution.routeLimitFactor = this.routeLimitFactor;
 
-		for (Route route : this.routes) {
-			if (route == null) {
-				break;
-			}
+		for (Route route : this.getRoutes()) {
 			customers = route.getCustomers();
 
 			clonedSolution.routes[i] = new Route();
@@ -509,7 +506,6 @@ public class MySolution extends SolutionAdapter {
 	}
 	
 	public void removeRoute(int index) {
-		// TODO -> move routes that are non-null to fill the null place created by the method
 		this.routes[index] = null;
 	}
 	

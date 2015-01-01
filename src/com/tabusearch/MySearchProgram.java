@@ -551,6 +551,14 @@ public class MySearchProgram implements TabuSearchListener {
 			}
 		}
 		
+		if(maxIndex == -1)		// no good choice
+		{
+			Cost cost = new Cost(sol.getCost());
+			cost.setTotal(Double.POSITIVE_INFINITY);
+			sol.setCost(cost);
+			return sol;
+		}
+		
 		if(blockSplitList[blockSplitCount] != -1)	
 		{
 			// find the move
