@@ -47,7 +47,12 @@ public class VRPTW {
 			// Init memory for Tabu Search
 			initialSol = new MySolution(instance);
 			objFunc = new MyObjectiveFunction(instance);
-			initialSol.generateInitialSolution();
+			
+			// Test #1
+			initialSol.generateInitialFeasibleSolution();
+			// Test #2
+			// initialSol.generateInitialSolution();
+			
 			initialSol.setObjectiveValue(objFunc.evaluate(initialSol, null));
 
 			// temporary just to see if initialSol works
