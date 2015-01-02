@@ -48,9 +48,6 @@ public class VRPTW {
 			initialSol = new MySolution(instance);
 			objFunc = new MyObjectiveFunction(instance);
 			
-			// Test #1
-			// initialSol.generateInitialFeasibleSolution();
-			// Test #2
 			initialSol.generateInitialSolution();
 			
 			initialSol.setObjectiveValue(objFunc.evaluate(initialSol, null));

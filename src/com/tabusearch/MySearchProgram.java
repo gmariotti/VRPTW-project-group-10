@@ -53,18 +53,13 @@ public class MySearchProgram implements TabuSearchListener {
 	private int[] 			blockSplitList;
 	private int				blockSplitCount;
 	
-	private double 			low				= 1 / 6;
-	private double 			lowMiddle		= 3 / 8;	
-	private double 			highMiddle		= 1 / 2;
-	private double 			high			= 2 / 3;
-	
-	// Test 1
-//	private double 			heavyPenalty	= 1;
-//	private double 			lightPenalty	= 0.4;
-	
-	 // Test 2
-	 private double 			heavyPenalty	= 0;
-	 private double 			lightPenalty	= 0;
+//	private double 			low				= 1 / 6;
+//	private double 			lowMiddle		= 3 / 8;	
+//	private double 			highMiddle		= 1 / 2;
+//	private double 			high			= 2 / 3;
+//	
+//	private double 			heavyPenalty	= 0;
+//	private double 			lightPenalty	= 0;
 	
 	private Instance	instance;
 	private Route[]		feasibleRoutes;	// stores the routes of the feasible solution
@@ -235,31 +230,31 @@ public class MySearchProgram implements TabuSearchListener {
 		 *   Tune the following two parameters by changing their constants to decide the range of
 		 *  number of routes you want.
 		 */
-		int minRange = (int) (instance.getVehiclesNr() * low);
-		int minGoodRange = (int) (instance.getVehiclesNr() * lowMiddle);
-		int maxGoodRange = (int) (instance.getVehiclesNr() * highMiddle);
-		int maxRange = (int) (instance.getVehiclesNr() * high);
-		
-		int currentNumberOfRoutes = solution.getRoutes().length;
+//		int minRange = (int) (instance.getVehiclesNr() * low);
+//		int minGoodRange = (int) (instance.getVehiclesNr() * lowMiddle);
+//		int maxGoodRange = (int) (instance.getVehiclesNr() * highMiddle);
+//		int maxRange = (int) (instance.getVehiclesNr() * high);
+//		
+//		int currentNumberOfRoutes = solution.getRoutes().length;
 
 		if (skip == false) {
 			
-			if(currentNumberOfRoutes <= minRange)
-			{
-				combineFactor += (minRange - currentNumberOfRoutes + 1) * heavyPenalty + (minGoodRange - minRange) * lightPenalty;
-			}
-			else if(currentNumberOfRoutes > minRange && currentNumberOfRoutes < minGoodRange)
-			{
-				combineFactor += (minGoodRange - currentNumberOfRoutes) * lightPenalty;
-			}
-			else if(currentNumberOfRoutes > maxGoodRange && currentNumberOfRoutes < maxRange)
-			{
-				splitFactor += (currentNumberOfRoutes - maxRange) * lightPenalty;
-			}
-			else if(currentNumberOfRoutes >= maxRange)
-			{
-				splitFactor += (currentNumberOfRoutes - maxRange + 1) * heavyPenalty + (maxRange - maxGoodRange) * lightPenalty;
-			}
+//			if(currentNumberOfRoutes <= minRange)
+//			{
+//				combineFactor += (minRange - currentNumberOfRoutes + 1) * heavyPenalty + (minGoodRange - minRange) * lightPenalty;
+//			}
+//			else if(currentNumberOfRoutes > minRange && currentNumberOfRoutes < minGoodRange)
+//			{
+//				combineFactor += (minGoodRange - currentNumberOfRoutes) * lightPenalty;
+//			}
+//			else if(currentNumberOfRoutes > maxGoodRange && currentNumberOfRoutes < maxRange)
+//			{
+//				splitFactor += (currentNumberOfRoutes - maxRange) * lightPenalty;
+//			}
+//			else if(currentNumberOfRoutes >= maxRange)
+//			{
+//				splitFactor += (currentNumberOfRoutes - maxRange + 1) * heavyPenalty + (maxRange - maxGoodRange) * lightPenalty;
+//			}
 			
 			if (!noCombine) {
 				combineSolution = performCombine();
@@ -276,7 +271,6 @@ public class MySearchProgram implements TabuSearchListener {
 				this.tabuSearch.setCurrentSolution(combineSolution);
 				reverseSplit = false;
 			} else {
-				// TODO -> find a better condition to help the solution converge to an optimal solution
 				if (splitSolution.getCost().getTotal() * splitFactor
 					< combineSolution.getCost().getTotal() * combineFactor
 					) {

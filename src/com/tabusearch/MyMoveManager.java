@@ -42,34 +42,6 @@ public class MyMoveManager implements MoveManager {
 		}
 	}
 
-	@SuppressWarnings("unused")
-	private Move[] getSwapMoves(MySolution solution) {
-		Route[] routes = solution.getRoutes();
-		List<Move> moves = new ArrayList<Move>();
-
-		/**
-		 * When we generate the Move[], we should apply the Granular criterion, in this way we can
-		 * generate a limited list of moves to be evaluate each time
-		 */
-		// iterates routes
-		for (int i = 0; i < routes.length; i++) {
-			// iterate for each customer in the route
-			List<Customer> customers = routes[i].getCustomers();
-			for (int j = 0; j < customers.size(); j++) {
-				// generate moves to all other routes
-				for (int k = 0; k < routes.length; k++) {
-					if (i != k) {
-						Customer customer = customers.get(j);
-						Move move = new MySwapMove(getInstance(), customer, i, j, k);
-						moves.add(move);
-					}
-				}
-			}
-		}
-		Move[] temp = moves.toArray(new Move[moves.size()]);
-		return temp;
-	}
-
 	/**
 	 * 
 	 * @param solution
