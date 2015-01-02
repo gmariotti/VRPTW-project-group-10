@@ -46,26 +46,26 @@ public class Parameters {
 				case "-it":
 					iterations = Integer.parseInt(args[i + 1]);
 					break;
-				case "-sc":
-					startClient = Integer.parseInt(args[i + 1]);
-					break;
-				case "-rs":
-					randomSeed = Integer.parseInt(args[i + 1]);
-					break;
-				case "-t":
-					tabuTenure = Integer.parseInt(args[i + 1]);
-					break;
-				case "-vt":
-					if (args[i + 1].equalsIgnoreCase("true")) {
-						variableTenure = true;
-					} else if (args[i + 1].equalsIgnoreCase("false")) {
-						variableTenure = false;
-					} else {
-						System.out
-								.println("Variable tenure argument must be true of false. Set to default false!");
-						throw new Exception();
-					}
-					break;
+//				case "-sc":
+//					startClient = Integer.parseInt(args[i + 1]);
+//					break;
+//				case "-rs":
+//					randomSeed = Integer.parseInt(args[i + 1]);
+//					break;
+//				case "-t":
+//					tabuTenure = Integer.parseInt(args[i + 1]);
+//					break;
+//				case "-vt":
+//					if (args[i + 1].equalsIgnoreCase("true")) {
+//						variableTenure = true;
+//					} else if (args[i + 1].equalsIgnoreCase("false")) {
+//						variableTenure = false;
+//					} else {
+//						System.out
+//								.println("Variable tenure argument must be true of false. Set to default false!");
+//						throw new Exception();
+//					}
+//					break;
 				default: {
 					System.out.println("Unknown type of argument: " + args[i]);
 					throw new Exception();

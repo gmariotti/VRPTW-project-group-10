@@ -5,7 +5,6 @@ package com.tabusearch;
 
 import java.util.*;
 
-import org.coinor.opents.Solution;
 import org.coinor.opents.SolutionAdapter;
 
 import com.vrptw.*;
@@ -16,19 +15,19 @@ import com.vrptw.*;
 @SuppressWarnings("serial")
 public class MySolution extends SolutionAdapter {
 
-	private final int	DEFAULT_MAX_CUSTOMERS_PER_ROUTE	= 4;
-
 	private Route[]		routes;
 	private Instance	instance;
-	private int			maxVehicleNumber				= 0;
-	private double		maxVehicleCapacity				= 0;
-	private int			customersNumber					= 0;
+	private int			maxVehicleNumber	= 0;
+	private double		maxVehicleCapacity	= 0;
+	private int			customersNumber		= 0;
 	private double[][]	distances;
 	private Depot		depot;
 	private Cost		cost;
 
-	// this parameter helps limit the number of customers per route
-	private double		routeLimitFactor				= 1.75;
+	private double		alpha				= 2;
+	private double		beta				= 2;
+	private double		gamma				= 2;
+	private double 		routeLimitFactor	= 1.5;	// used to limit the number of Customers per route
 
 	/**
 	 * Default constructor for MySolution Class. It does nothing. If you want to generate an initial
@@ -50,17 +49,6 @@ public class MySolution extends SolutionAdapter {
 		this.cost = new Cost();
 	}
 
-	public void calculateCost() {
-		Route[] routes = this.getRoutes();
-		Cost solCost = this.cost;
-		solCost.reset();
-		for (Route route : routes) {
-			Cost cost = route.getCost();
-			solCost.add(cost);
-		}
-		solCost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
-	}
-
 	/**
 	 * This method is used to generate a new initial solution.
 	 * 
@@ -68,375 +56,264 @@ public class MySolution extends SolutionAdapter {
 	 *            .
 	 */
 	public void generateInitialSolution() {
-		/*
-		 * Initialize the customers arraylist, creating a new customer identical to the one in the
-		 * instace.customers list. In this way we avoid any modification on the main list of
-		 * customer
-		 */
-		List<Customer> customers = new ArrayList<Customer>();
-		for (Customer customer : this.instance.getCustomers()) {
-			customers.add(new Customer(customer));
-		}
-
-		/*
-		 * At the beginning, we generate a solution by : - selecting a vehicle - selecting a
-		 * customer, and assign it to the vehicle until it's full - get another vehicle, and do the
-		 * same with the remaining customers. We do not care about time window (yet).
-		 */
-
-		int vehicleNumber = 1; // First vehicle (i is the variable counting the vehicles)
-		int maxCustomersPerRoute = (int) ((customersNumber / maxVehicleNumber) * routeLimitFactor);
-
-		/*
-		 * in the rare case that there are less customers than vehicles we set the maximum number of
-		 * customers per route to a default value of 4
-		 */
-		maxCustomersPerRoute = (maxCustomersPerRoute == 0 ? DEFAULT_MAX_CUSTOMERS_PER_ROUTE
-				: maxCustomersPerRoute);
-
-		Boolean stop = Boolean.FALSE; // The stopping condition will be true when there are no
-										// customers left.
-
-		/*
-		 * Each iteration is the creation of a route
-		 */
-		while (!stop) {
-			Depot depot = this.getDepot();
-			List<Double> customersCost = new ArrayList<>();
-			Vehicle vehicle = new Vehicle(vehicleNumber, this.getMaxVehicleCapacity(), 0);
-			double load = 0;
-			double time = 0;
-			for (Customer customer : customers) {
-				// cost from the depot into customersCost
-				double distanceCost = customer.getDistance(depot.getXCoordinate(),
-						depot.getYCoordinate());
-				if (distanceCost < customer.getStartTw()) { // I have to wait the opening time
-					customersCost.add((double) customer.getStartTw());
-				} else if (distanceCost < customer.getEndTw()) {
-					// I need more time to arrive compared to the opening time but I can arrive
-					// before the ending time
-					customersCost.add(distanceCost);
-				} else {
-					customersCost.add(Double.POSITIVE_INFINITY);
+		// array used to determine the best choice for the next customer
+		double[] timeWindowCriteria = new double[customersNumber];
+		// array used to be able to tell whether a customer is placed in a route or not
+		boolean[] routed = new boolean[customersNumber];
+		// array to keep the indexes of all customers sorted by starting TW
+		int[] customerIndexByStartTw;
+		
+		int maxCustomersPerRoute = (int) ((customersNumber/maxVehicleNumber) * routeLimitFactor);
+		boolean stop = Boolean.FALSE;			// condition to stop looping
+		
+		int numberOfInitializedRoutes = 0;
+		int routedCustomers = 0;
+		int count = 0;
+		
+		List<Customer> customers = this.instance.getCustomers();
+		
+		customerIndexByStartTw = sortByTw(customers);
+		
+		while(!stop){
+			Customer current;		// the current customer in the current route
+			Customer potentialNext;	// potential candidate customer to follow the currentCustomer
+			
+			double minArriveTime;
+			double maxArriveTime;
+			double startTw;		// starting TW of the customer to be routed
+			double endTw;		// end TW of the customer to be route
+			double waitingTime;
+			double distance;
+			
+			int customersInCurrentRoute = 0;
+			double currentRouteLoad = 0;
+			
+			if(numberOfInitializedRoutes < this.maxVehicleNumber)	// new routes can be assigned
+			{
+				this.routes[numberOfInitializedRoutes] = new Route();
+				this.routes[numberOfInitializedRoutes].setIndex(numberOfInitializedRoutes);
+				this.routes[numberOfInitializedRoutes].setAssignedVehicle(
+						new Vehicle(numberOfInitializedRoutes, this.maxVehicleCapacity, instance.getDurations()[0])
+						);
+				this.routes[numberOfInitializedRoutes].setDepot(this.depot);
+				
+				while(routed[customerIndexByStartTw[count]]) {
+					count++;
 				}
-			}
-			List<Customer> routeCustomers = new ArrayList<>();
-			int index = minimumCost(customersCost);
-			Customer customerToAdd = customers.get(index);
-			// add the customer to the route
-			routeCustomers.add(customerToAdd);
-			load += customerToAdd.getLoad();
-			customers.remove(index); // the list is automatically reordered
-
-			// increment the time
-			time = customersCost.get(index) + customerToAdd.getServiceDuration();
-
-			/*
-			 * Iterate starting from the last customer added
-			 */
-			Boolean full = Boolean.FALSE;
-
-			while (!full && customers.size() > 0 && routeCustomers.size() < maxCustomersPerRoute) {
-
-				customersCost = new ArrayList<>();
-				for (Customer customer : customers) {
-					// evaluate distance
-					double distanceCost = customer.getDistance(customerToAdd.getXCoordinate(),
-							customerToAdd.getYCoordinate());
-					// check feasible
-					if ((load + customer.getLoad()) <= vehicle.getCapacity()
-							&& (time + distanceCost) < (customer.getEndTw() - customer
-									.getServiceDuration())) {
-						if ((time + distanceCost) < customer.getStartTw()) { // I have to wait
-							customersCost.add(customer.getStartTw() - time);
-						} else {
-							customersCost.add(distanceCost);
+				
+				current = new Customer(customers.get(customerIndexByStartTw[count]));
+				
+				while(customersInCurrentRoute < maxCustomersPerRoute) {
+					double maxValue = Double.NEGATIVE_INFINITY;
+					int maxIndex = -1;
+					
+					this.routes[numberOfInitializedRoutes].addCustomer(current, -1);
+					
+					routed[current.getNumber()] = true;
+					routedCustomers++;
+					customersInCurrentRoute++;
+					currentRouteLoad += current.getLoad();
+					
+					// calculate the TW criteria
+					for(int i = 0; i < this.customersNumber; i++)
+					{
+						if(routed[i]) {
+							timeWindowCriteria[i] = Double.NEGATIVE_INFINITY;
+							continue;
 						}
-					} else {
-						customersCost.add(Double.POSITIVE_INFINITY);
-					}
-				}
-				// if there isn't any feasible customer than I exit
-				if (!feasibleCustomers(customersCost)) {
-					break;
-				}
-				index = minimumCost(customersCost);
-				customerToAdd = customers.get(index);
-				// add the customerToAdd
-				routeCustomers.add(customerToAdd);
-				load += customerToAdd.getLoad();
-				customers.remove(index); // the list is automatically reordered
-
-				// increment the time
-				time += customersCost.get(index) + customerToAdd.getServiceDuration();
-
-				if (load >= vehicle.getCapacity()) {
-					full = Boolean.TRUE;
-				}
-			}
-
-			/*
-			 * Generate the new route
-			 */
-			Route route = new Route();
-			route.setIndex(vehicleNumber - 1);
-			route.setCustomers(routeCustomers);
-			route.setAssignedVehicle(vehicle);
-			route.setDepot(depot);
-			route.calculateCost(route.getAssignedVehicle().getCapacity(), instance.getAlpha(),
-					instance.getBeta(), instance.getGamma());
-
-			routes[vehicleNumber - 1] = route;
-			vehicleNumber++;
-
-			// if there aren't other customers than exit
-			if (customers.size() == 0) {
-				stop = Boolean.TRUE;
-			}
-		}
-
-		/*
-		 * I delete all the routes that have customers less than a param, given by the number of
-		 * routes created
-		 */
-		Route[] routes = this.getRoutes();
-		int param = (int) (this.getRoutes().length / 10);
-		List<Customer> toAssign = new ArrayList<>();
-		List<Route> toDelete = new ArrayList<>();
-		int tot = 0;
-		for (int i = 0; i < routes.length; i++) {
-			Route route = routes[i];
-			customers = route.getCustomers();
-			if (customers.size() <= param) {
-				for (Customer customer : customers) {
-					toAssign.add(customer);
-				}
-				toDelete.add(route);
-				tot++;
-			}
-			if (tot == param) {
-				break;
-			}
-		}
-
-		if (toDelete.size() > 0) {
-			routes = removeRoutes(routes, toDelete);
-
-			/*
-			 * All the customers in the list as to be reassigned to the other routes
-			 */
-			for (int i = 0; i < routes.length; i++) {
-				customers = routes[i].getCustomers();
-				Cost cost = routes[i].getCost();
-				Vehicle vehicle = routes[i].getAssignedVehicle();
-				if (cost.getLoad() < vehicle.getCapacity()) {
-					boolean cycle = true;
-					int index = 0;
-					while (cycle && index < toAssign.size()) {
-						if (cost.getLoad() + toAssign.get(index).getLoad() < vehicle.getCapacity()) {
-							customers.add(toAssign.get(index));
-							cost.setLoad(cost.getLoad() + toAssign.get(index).getLoad());
-							cycle = false;
-							toAssign.remove(index);
-						} else {
-							index++;
+						
+						potentialNext = new Customer(customers.get(i));
+						
+						/*
+						 *  The minimum arrive time at the next customer from the current customer.
+						 *  So we suppose to be at current customer either at the Start TW or before.
+						 */
+						minArriveTime = current.getStartTw() + current.getServiceDuration()
+									  + distances[current.getNumber()][potentialNext.getNumber()];
+						
+						endTw = potentialNext.getEndTw();
+						
+						if(endTw < minArriveTime)	// the potentialNext customer cannot be reached
+						{
+							timeWindowCriteria[i] = Double.NEGATIVE_INFINITY;
+							continue;
+						}
+						
+						/*
+						 *  The maximum arrive time at the next customer from the current customer.
+						 *  So we suppose to be at current customer either exactly at the end of the End TW.
+						 */
+						maxArriveTime = current.getEndTw() + current.getServiceDuration()
+									  + distances[current.getNumber()][potentialNext.getNumber()];
+						
+						startTw = potentialNext.getStartTw();
+						
+						waitingTime = Math.max(0, startTw - minArriveTime);
+						distance = distances[current.getNumber()][potentialNext.getNumber()];
+						
+						timeWindowCriteria[i] = Math.min(maxArriveTime, endTw) - Math.max(minArriveTime, startTw) - 1/5 * waitingTime - 1/5 * distance;
+						
+						// So as not to have to search for the max value later.
+						// The second condition ensures there is no load violation.
+						if(timeWindowCriteria[i] > maxValue && 
+						   potentialNext.getLoad() + currentRouteLoad < this.maxVehicleCapacity)	
+						{
+							maxValue = timeWindowCriteria[i];
+							maxIndex = i;
 						}
 					}
+					
+					// this means this route because none of the candidates satisfied the criteria
+					if(maxIndex == -1 || maxValue == Double.NEGATIVE_INFINITY) { break; }	
+					
+					current = customers.get(maxIndex);
 				}
+				
+				numberOfInitializedRoutes++;
 			}
-		}
-		this.setRoutes(routes);
-	} // end function
-
-	/**
-	 * Alternative way to generate an initial solution. Is different from the previous one, because
-	 * it accepts a random initial customer
-	 */
-	public void generateAlternativeInitialSolution() {
-		/*
-		 * Initialize the customers arraylist, creating a new customer identical to the one in the
-		 * instace.customers list. In this way we avoid any modification on the main list of
-		 * customer
-		 */
-		List<Customer> customers = new ArrayList<Customer>();
-		for (Customer customer : this.instance.getCustomers()) {
-			customers.add(new Customer(customer));
-		}
-		List<Route> routes = new ArrayList<>();
-
-		/*
-		 * At the beginning, we generate a solution by : - selecting a vehicle - selecting a
-		 * customer, and assign it to the vehicle until it's full - get another vehicle, and do the
-		 * same with the remaining customers. We do not care about time window (yet).
-		 */
-
-		int vehicleNumber = 1; // First vehicle (i is the variable counting the vehicles)
-		int maxCustomersPerRoute = (int) ((customersNumber / maxVehicleNumber) * routeLimitFactor);
-
-		/*
-		 * in the rare case that there are less customers than vehicles we set the maximum number of
-		 * customers per route to a default value of 4
-		 */
-		maxCustomersPerRoute = (maxCustomersPerRoute == 0 ? DEFAULT_MAX_CUSTOMERS_PER_ROUTE
-				: maxCustomersPerRoute);
-		Boolean stop = Boolean.FALSE; // The stopping condition will be true when there are no
-										// customers left.
-
-		/*
-		 * Each iteration is the creation of a route
-		 */
-		while (!stop) {
-			Depot depot = this.getDepot();
-			Vehicle vehicle = new Vehicle(vehicleNumber, this.getMaxVehicleCapacity(), 0);
-			double load = 0;
-			double time = 0;
-
-			int startCustomer = instance.getRandom().nextInt(customers.size());
-			List<Customer> routeCustomers = new ArrayList<>();
-			Customer customerToAdd = customers.get(startCustomer);
-			// add the customer to the route
-			routeCustomers.add(customerToAdd);
-			load += customerToAdd.getLoad();
-			customers.remove(startCustomer); // the list is automatically reordered
-
-			// increment the time
-			time = customerToAdd.getDistance(depot.getXCoordinate(), depot.getYCoordinate())
-					+ customerToAdd.getServiceDuration();
-
-			/*
-			 * Iterate starting from the last customer added
-			 */
-			Boolean full = Boolean.FALSE;
-
-			while (!full && customers.size() > 0 && routeCustomers.size() < maxCustomersPerRoute) {
-
-				List<Double> customersCost = new ArrayList<>();
-				for (Customer customer : customers) {
-					// evaluate distance
-					double distanceCost = customer.getDistance(customerToAdd.getXCoordinate(),
-							customerToAdd.getYCoordinate());
-					// check feasible
-					if ((load + customer.getLoad()) <= vehicle.getCapacity()
-							&& (time + distanceCost) < (customer.getEndTw() - customer
-									.getServiceDuration())) {
-						if ((time + distanceCost) < customer.getStartTw()) { // I have to wait
-							customersCost.add(customer.getStartTw() - time);
-						} else {
-							customersCost.add(distanceCost);
-						}
-					} else {
-						customersCost.add(Double.POSITIVE_INFINITY);
+			
+			// stop if all customers have been routed
+			if(routedCustomers == customersNumber)
+			{
+				stop = true;
+			}
+			else if(numberOfInitializedRoutes == maxVehicleNumber){
+				/*
+				 *  In this case there are still customers left not added to routes, but
+				 * no more routes, so we add all of them to the first route and let
+				 * our moves guide us to good solution
+				 */
+				count = 0;
+				while(count < customersNumber) {	
+					while(count < customersNumber && routed[count]) { count++; }		// skip already routed customers
+					
+					if(count < customersNumber)	{
+						current = new Customer(customers.get(count));
+						this.routes[0].addCustomer(current, -1);
+						routed[count] = true;
+						count++;
 					}
-				}
-				// if there isn't any feasible customer than I exit
-				if (!feasibleCustomers(customersCost)) {
-					break;
-				}
-				int index = minimumCost(customersCost);
-				customerToAdd = customers.get(index);
-				// add the customerToAdd
-				routeCustomers.add(customerToAdd);
-				load += customerToAdd.getLoad();
-				customers.remove(index); // the list is automatically reordered
-
-				// increment the time
-				time += customersCost.get(index) + customerToAdd.getServiceDuration();
-
-				if (load >= vehicle.getCapacity()) {
-					full = Boolean.TRUE;
-				}
-			}
-
-			/*
-			 * Generate the new route
-			 */
-			Route route = new Route();
-			route.setIndex(vehicleNumber - 1);
-			route.setCustomers(routeCustomers);
-			route.setAssignedVehicle(vehicle);
-			route.setDepot(depot);
-			route.calculateCost(route.getAssignedVehicle().getCapacity(), instance.getAlpha(),
-					instance.getBeta(), instance.getGamma());
-
-			routes.add(route);
-			vehicleNumber++;
-
-			// if there aren't other customers than exit
-			if (customers.size() == 0) {
-				stop = Boolean.TRUE;
+				}	
+				
+				stop = true;
 			}
 		}
-
-		/*
-		 * I delete all the routes that have customers less than a param, given by the number of
-		 * routes created
-		 */
-		Route[] routes1 = routes.toArray(new Route[routes.size()]);
-		int param = (int) (routes1.length / 10);
-		List<Customer> toAssign = new ArrayList<>();
-		List<Route> toDelete = new ArrayList<>();
-		for (int i = 0; i < routes1.length; i++) {
-			Route route = routes1[i];
-			customers = route.getCustomers();
-			if (customers.size() <= param) {
-				for (Customer customer : customers) {
-					toAssign.add(customer);
-				}
-				toDelete.add(route);
-			}
-		}
-
-		if (toDelete.size() > 0) {
-			routes1 = removeRoutes(routes1, toDelete);
-
-			/*
-			 * All the customers in the list as to be reassigned to the other routes
-			 */
-			for (int i = 0; i < routes1.length; i++) {
-				customers = routes1[i].getCustomers();
-				Cost cost = routes1[i].getCost();
-				Vehicle vehicle = routes1[i].getAssignedVehicle();
-				if (cost.getLoad() < vehicle.getCapacity()) {
-					boolean cycle = true;
-					int index = 0;
-					while (cycle && index < toAssign.size()) {
-						if (cost.getLoad() + toAssign.get(index).getLoad() < vehicle.getCapacity()) {
-							customers.add(toAssign.get(index));
-							cost.setLoad(cost.getLoad() + toAssign.get(index).getLoad());
-							cycle = false;
-							toAssign.remove(index);
-						} else {
-							index++;
-						}
-					}
-				}
-			}
-		}
-		this.setRoutes(routes1);
 	}
-
-	public Route[] removeRoutes(Route[] routes, List<Route> toDelete) {
-		List<Route> list = new ArrayList<>();
-		for (Route route : routes) {
-			int size = 0;
-			for (Route tmp : toDelete) {
-				if (route != null && route.getIndex() != tmp.getIndex()) {
-					size++;
-				} else if (route.getIndex() == tmp.getIndex()) {
-					size--;
-				}
-				if (size == toDelete.size()) {
-					list.add(route);
-				}
-			}
-		}
-		return list.toArray(new Route[list.size()]);
-	}
-
-	public void removeRoute(int index) {
-		// TODO -> move routes that are non-null to fill the null place created by the method
-		this.routes[index] = null;
-	}
+	
+//	public void generateInitialSolution() {
+//		/*
+//		 * Initialize the customers arraylist, creating a new customer identical to the one in the
+//		 * instace.customers list. In this way we avoid any modification on the main list of
+//		 * customer
+//		 */
+//		List<Customer> customers = new ArrayList<Customer>();
+//		for (Customer tmp : this.instance.getCustomers()) {
+//			Customer customer = new Customer(tmp);
+//			customers.add(customer);
+//		}
+//
+//		/*
+//		 * At the beginning, we generate a solution by : - selecting a vehicle - selecting a
+//		 * customer, and assign it to the vehicle until it's full - get another vehicle, and do the
+//		 * same with the remaining customers. We do not care about time window (yet).
+//		 */
+//
+//		int vehicleNumber = 1; // First vehicle (i is the variable counting the vehicles)
+//
+//		Boolean stop = Boolean.FALSE; // The stopping condition will be true when there are no
+//										// customers left.
+//
+//		/*
+//		 * Each iteration is the creation of a route
+//		 */
+//		while (!stop) {
+//			Depot depot = this.getDepot();
+//			List<Double> customersCost = new ArrayList<>();
+//			Vehicle vehicle = new Vehicle(vehicleNumber, this.getMaxVehicleCapacity(), 0);
+//			double load = 0;
+//			double time = 0;
+//			for (Customer customer : customers) {
+//				// cost from the depot into customersCost
+//				double distanceCost = instance.getDistances()[customer.getNumber()][instance.getCustomersNr()];
+//				if (distanceCost < customer.getStartTw()) { // I have to wait the opening time
+//					customersCost.add((double) customer.getStartTw());
+//				} else { // I need more time to arrive compared to the opening time
+//					customersCost.add(distanceCost);
+//				}
+//			}
+//			List<Customer> routeCustomers = new ArrayList<>();
+//			int index = minimumCost(customersCost);
+//			Customer customerToAdd = customers.get(index);
+//			// add the customer to the route
+//			routeCustomers.add(customerToAdd);
+//			load += customerToAdd.getLoad();
+//			customers.remove(index); // the list is automatically reordered
+//
+//			// increment the time
+//			time = customersCost.get(index) + customerToAdd.getServiceDuration();
+//
+//			/*
+//			 * Iterate starting from the last customer added
+//			 */
+//			Boolean full = Boolean.FALSE;
+//
+//			while (!full || customers.size() > 0) {
+//
+//				customersCost = new ArrayList<>();
+//				for (Customer customer : customers) {
+//					// evaluate distance
+//					double distanceCost = instance.getDistances()[customer.getNumber()][customerToAdd.getNumber()];
+//					// check feasible
+//					if ((load + customer.getLoad()) <= vehicle.getCapacity()
+//							&& (time + distanceCost) < (customer.getEndTw() - customer
+//									.getServiceDuration())) {
+//						if ((time + distanceCost) < customer.getStartTw()) { // I have to wait
+//							customersCost.add(customer.getStartTw() - time);
+//						} else {
+//							customersCost.add(distanceCost);
+//						}
+//					} else {
+//						customersCost.add(Double.POSITIVE_INFINITY);
+//					}
+//				}
+//				// if there isn't any feasible customer than I exit
+//				if (!feasibleCustomers(customersCost)) {
+//					break;
+//				}
+//				index = minimumCost(customersCost);
+//				customerToAdd = customers.get(index);
+//				// add the customerToAdd
+//				routeCustomers.add(customerToAdd);
+//				load += customerToAdd.getLoad();
+//				customers.remove(index); // the list is automatically reordered
+//
+//				// increment the time
+//				time += customersCost.get(index) + customerToAdd.getServiceDuration();
+//
+//				if (load >= vehicle.getCapacity()) {
+//					full = Boolean.TRUE;
+//				}
+//			}
+//
+//			/*
+//			 * Generate the new route
+//			 */
+//			Route route = new Route();
+//			route.setIndex(vehicleNumber - 1);
+//			route.setCustomers(routeCustomers);
+//			route.setAssignedVehicle(vehicle);
+//			route.setDepot(depot);
+//
+//			routes[vehicleNumber - 1] = route;
+//			vehicleNumber++;
+//
+//			// if there aren't other customers than exit
+//			if (customers.size() == 0) {
+//				stop = Boolean.TRUE;
+//			}
+//		}
+//
+//	} // end function
 
 	/**
 	 * check if there are one or more feasibleCustomers
@@ -473,14 +350,52 @@ public class MySolution extends SolutionAdapter {
 		return customersCost.indexOf(result);
 	}
 
+	/*
+	 *   Sorts the customers by starting TW and return an integer
+	 * array with the indexes in order
+	 */
+	private int[] sortByTw(List<Customer> customers) {
+		int[] indexes = new int[customersNumber];
+		int[] startTws = new int[customersNumber];
+		int temp;
+		
+		// store in the matrix the relative data for sorting
+		for(int i = 0; i < customersNumber; i++)
+		{
+			Customer customer = customers.get(i);
+			indexes[i] = customer.getNumber();
+			startTws[i] = customer.getEndTw();
+		}
+		
+		// A simple bubble sort can be replaced with some quicker sorting algorithm
+		
+		for(int i = 0; i < customersNumber; i++)
+		{
+			for(int j = 1; j < customersNumber - i; j++)
+			{
+				if(startTws[j - 1] > startTws[j])
+				{
+					temp = startTws[j - 1];
+					startTws[j - 1] = startTws[j];
+					startTws[j] = temp;
+					temp = indexes[j - 1];
+					indexes[j - 1] = indexes[j];
+					indexes[j] = temp;
+				}
+			}
+		}
+		
+		return indexes;
+	}
+
+
 	/**
 	 * This function is used to clone a Solution.
 	 * 
 	 * @return a MySolution object
 	 */
 	public Object clone() {
-		Solution solution = (Solution) super.clone();
-		MySolution clonedSolution = (MySolution) solution;
+		MySolution clonedSolution = (MySolution) super.clone();
 
 		clonedSolution.instance = instance;
 		clonedSolution.maxVehicleNumber = instance.getVehiclesNr();
@@ -491,11 +406,18 @@ public class MySolution extends SolutionAdapter {
 		clonedSolution.routes = new Route[this.maxVehicleNumber];
 		clonedSolution.cost = new Cost();
 
+		List<Customer> customers;
 		int i = 0;
 
 		clonedSolution.setCost(new Cost(this.cost));
+		clonedSolution.alpha = this.alpha;
+		clonedSolution.beta = this.beta;
+		clonedSolution.gamma = this.gamma;
+		clonedSolution.routeLimitFactor = this.routeLimitFactor;
 
 		for (Route route : this.getRoutes()) {
+			customers = route.getCustomers();
+
 			clonedSolution.routes[i] = new Route();
 			// clone route information
 			clonedSolution.routes[i].setIndex(route.getIndex());
@@ -503,14 +425,12 @@ public class MySolution extends SolutionAdapter {
 			clonedSolution.routes[i].setAssignedVehicle(route.getAssignedVehicle());
 			clonedSolution.routes[i].setCost(new Cost(route.getCost()));
 
-			List<Customer> customers = route.getCustomers();
 			for (Customer customer : customers) {
+				// clone customers
 				clonedSolution.routes[i].addCustomer(new Customer(customer), -1);
 			}
 			i++;
 		}
-
-		clonedSolution.routeLimitFactor = this.routeLimitFactor;
 
 		return clonedSolution;
 	}
@@ -537,14 +457,8 @@ public class MySolution extends SolutionAdapter {
 			}
 			solution += "\n";
 		}
+		solution += "The total cost is: " + this.cost.getTotal();
 		System.out.println(solution);
-		int customerPrint = 0;
-		for (Route route : routes) {
-			List<Customer> customers = route.getCustomers();
-			customerPrint += customers.size();
-		}
-		System.out.println("Customer number " + customerPrint);
-		System.out.println("The total cost is: " + cost.getTotal());
 	}
 
 	public Cost getCost() {
@@ -581,14 +495,7 @@ public class MySolution extends SolutionAdapter {
 	 *            the routes to set
 	 */
 	public void setRoutes(Route[] routes) {
-		List<Route> list = new ArrayList<>();
-		for (Route route : routes) {
-			if (route == null) {
-				continue;
-			}
-			list.add(route);
-		}
-		this.routes = list.toArray(new Route[list.size()]);
+		this.routes = routes;
 	}
 
 	/**
@@ -600,6 +507,30 @@ public class MySolution extends SolutionAdapter {
 	 */
 	public void setRoutes(Route route, int index) {
 		this.routes[index] = new Route(route);
+	}
+
+	public double getAlpha() {
+		return alpha;
+	}
+
+	public double getBeta() {
+		return beta;
+	}
+
+	public double getGamma() {
+		return gamma;
+	}
+
+	public void setAlpha(double alpha) {
+		this.alpha = alpha;
+	}
+
+	public void setBeta(double beta) {
+		this.beta = beta;
+	}
+
+	public void setGamma(double gamma) {
+		this.gamma = gamma;
 	}
 
 	/**
@@ -701,15 +632,48 @@ public class MySolution extends SolutionAdapter {
 	}
 
 	public boolean isFeasible() {
-		return cost.checkFeasible();
+		for(Route route : this.getRoutes())
+		{
+			if(!route.getCost().checkFeasible())
+			{
+				return false;
+			}
+		}
+		
+		return true;
 	}
-
-	public double getRouteLimitFactor() {
-		return routeLimitFactor;
+	
+	public void calculateCost() {
+		Route[] routes = this.getRoutes();
+		Cost solCost = this.cost;
+		solCost.reset();
+		for (Route route : routes) {
+			Cost cost = route.getCost();
+			solCost.add(cost);
+		}
+		solCost.calculateTotal(instance.getAlpha(), instance.getBeta(), instance.getGamma());
 	}
-
-	public void setRouteLimitFactor(double routeLimitFactor) {
-		this.routeLimitFactor = routeLimitFactor;
+	
+	public void removeRoute(int index) {
+		this.routes[index] = null;
+	}
+	
+	public Route[] removeRoutes(Route[] routes, List<Route> toDelete) {
+		List<Route> list = new ArrayList<>();
+		for (Route route : routes) {
+			int size = 0;
+			for (Route tmp : toDelete) {
+				if (route != null && route.getIndex() != tmp.getIndex()) {
+					size++;
+				} else if (route.getIndex() == tmp.getIndex()) {
+					size--;
+				}
+				if (size == toDelete.size()) {
+					list.add(route);
+				}
+			}
+		}
+		return list.toArray(new Route[list.size()]);
 	}
 
 }
