@@ -59,12 +59,12 @@ public class MySearchProgram implements TabuSearchListener {
 	private double 			high			= 2 / 3;
 	
 	// Test 1
-	//private double 			heavyPenalty	= 1;
-	//private double 			lightPenalty	= 0.4;
+//	private double 			heavyPenalty	= 1;
+//	private double 			lightPenalty	= 0.4;
 	
-	// Test 2
-	private double 			heavyPenalty	= 0;
-	private double 			lightPenalty	= 0;
+	 // Test 2
+	 private double 			heavyPenalty	= 0;
+	 private double 			lightPenalty	= 0;
 	
 	private Instance	instance;
 	private Route[]		feasibleRoutes;	// stores the routes of the feasible solution
@@ -213,7 +213,6 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void noChangeInValueMoveMade(TabuSearchEvent e) {
-		System.out.println("It " + tabuSearch.getIterationsCompleted());
 		count++;
 		if (count == 1) {
 			Granular.setGranularity((MySolution) this.tabuSearch.getBestSolution());
@@ -302,10 +301,10 @@ public class MySearchProgram implements TabuSearchListener {
 			
 			skip = true;
 
-			System.out.println("The current solution seen below:");
-			solution.print();
-			System.out.println("was changed to:");
-			((MySolution) this.tabuSearch.getCurrentSolution()).print();
+//			System.out.println("The current solution seen below:");
+//			solution.print();
+//			System.out.println("was changed to:");
+//			((MySolution) this.tabuSearch.getCurrentSolution()).print();
 		} else {
 			skip = false;
 		}

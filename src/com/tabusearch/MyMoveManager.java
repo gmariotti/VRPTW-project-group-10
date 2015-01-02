@@ -42,6 +42,7 @@ public class MyMoveManager implements MoveManager {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private Move[] getSwapMoves(MySolution solution) {
 		Route[] routes = solution.getRoutes();
 		List<Move> moves = new ArrayList<Move>();

@@ -163,7 +163,7 @@ public class Duration {
 	 * @return the seconds
 	 */
 	public long getSeconds() {
-		return seconds;
+		return minutes * 60 + seconds;
 	}
 
 	/**
