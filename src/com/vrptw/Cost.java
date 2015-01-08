@@ -45,14 +45,32 @@ public class Cost {
 		this.returnToDepotTime = new Double(cost.returnToDepotTime);
 		this.depotTwViol = new Double(cost.depotTwViol);
 	}
+	
+	/**
+	 * Reset all cost's attributes to 0
+	 */
+	public void reset() {
+		total = 0;
+		travelTime = 0;
+		load = 0;
+		serviceTime = 0;
+		waitingTime = 0;
+
+		loadViol = 0;
+		durationViol = 0;
+		twViol = 0;
+
+		returnToDepotTime = 0;
+		depotTwViol = 0;
+	}
 
 	public String toString() {
 		StringBuffer print = new StringBuffer();
-		print.append("--- Cost -------------------------------------");
-		print.append("\n" + "| TotalTravelCost=" + travelTime + " TotalCostViol=" + total);
-		print.append("\n" + "| LoadViol=" + loadViol + " DurationViol=" + durationViol + " TWViol="
-				+ twViol);
-		print.append("\n" + "--------------------------------------------------" + "\n");
+		print.append("--- Cost ---" + "\n");
+		print.append("TotalTravelCost=" + travelTime + " TotalCost=" + total + "\n");
+		print.append("LoadViol=" + loadViol + " DurationViol=" + durationViol + " TWViol="
+				+ twViol + "\n");
+		print.append("------" + "\n");
 		return print.toString();
 	}
 
@@ -263,21 +281,6 @@ public class Cost {
 	 */
 	public void setDepotTwViol(double depotTwViol) {
 		this.depotTwViol = depotTwViol;
-	}
-
-	public void reset() {
-		total = 0;
-		travelTime = 0;
-		load = 0;
-		serviceTime = 0;
-		waitingTime = 0;
-
-		loadViol = 0;
-		durationViol = 0;
-		twViol = 0;
-
-		returnToDepotTime = 0;
-		depotTwViol = 0;
 	}
 
 }

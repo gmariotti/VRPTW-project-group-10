@@ -25,80 +25,87 @@ public class Route {
 
 	public String toString() {
 		StringBuffer print = new StringBuffer();
-		print.append("\n" + "Route[" + index + "]");
-		print.append("\n" + "--------------------------------------------");
-		print.append("\n" + "| Capacity=" + cost.getLoad() + " ServiceTime="
-				+ cost.getServiceTime() + " TravelTime=" + cost.getTravelTime() + " WaitingTime="
-				+ cost.getWaitingTime() + " Totaltime=" + cost.getTotal());
-		print.append("\n" + cost);
-		print.append("\n");
+		print.append("--- Route[" + index + "] ---" + "\n");
+		print.append("Capacity=" + cost.getLoad() + " ServiceTime=" + cost.getServiceTime()
+				+ " TravelTime=" + cost.getTravelTime() + " WaitingTime=" + cost.getWaitingTime()
+				+ " Totaltime=" + cost.getTotal() + "\n");
+		print.append(cost);
+		print.append("------" + "\n");
 		return print.toString();
 	}
 
+	/**
+	 * Method that allows the calculation of the cost of a route. Not perfect yet as it doesn't
+	 * allow the modification of the parameters alpha, beta and gamma. Also the max vehicle capacity
+	 * has to be passed as parameters.
+	 * 
+	 * @param maxAllowedLoad
+	 * @return
+	 */
+	public void calculateCost(double maxAllowedLoad, double alpha, double beta, double gamma) {
+		Cost cost = new Cost();
+		Customer previousCustomer;
+		Customer currentCustomer = customers.get(0);
+
+		// this should be fixed by adding a getDistance method to the depot
+		cost.setTravelTime(currentCustomer.getDistance(depot.getXCoordinate(),
+				depot.getYCoordinate()));
+		cost.setLoad(currentCustomer.getLoad());
+		cost.setServiceTime(currentCustomer.getServiceDuration());
+
+		currentCustomer.setArriveTime(depot.getStartTw() + cost.getTravelTime());
+
+		currentCustomer.setWaitingTime(Math.max(0,
+				currentCustomer.getStartTw() - currentCustomer.getArriveTime()));
+		cost.setWaitingTime(currentCustomer.getWaitingTime());
+
+		currentCustomer.setTwViol(Math.max(0,
+				currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
+		cost.addTwViol(currentCustomer.getTwViol());
+
+		for (int i = 1; i < customers.size(); i++) {
+			previousCustomer = currentCustomer;
+			currentCustomer = customers.get(i);
+
+			cost.setTravelTime(cost.getTravelTime()
+					+ previousCustomer.getDistance(currentCustomer.getXCoordinate(),
+							currentCustomer.getYCoordinate()));
+			cost.setLoad(cost.getLoad() + currentCustomer.getLoad());
+			cost.setServiceTime(cost.getServiceTime() + currentCustomer.getServiceDuration());
+
+			currentCustomer.setArriveTime(previousCustomer.getDepartureTime()
+					+ previousCustomer.getDistance(currentCustomer.getXCoordinate(),
+							currentCustomer.getYCoordinate()));
+
+			currentCustomer.setWaitingTime(Math.max(0, currentCustomer.getStartTw()
+					- currentCustomer.getArriveTime()));
+			cost.setWaitingTime(cost.getWaitingTime() + currentCustomer.getWaitingTime());
+
+			currentCustomer.setTwViol(Math.max(0,
+					currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
+			cost.addTwViol(cost.getTwViol() + currentCustomer.getTwViol());
+		}
+
+		cost.setTravelTime(cost.getTravelTime()
+				+ currentCustomer.getDistance(depot.getXCoordinate(), depot.getYCoordinate()));
+		cost.setReturnToDepotTime(cost.getTravelTime());
+		cost.setDepotTwViol(Math.max(0, cost.getReturnToDepotTime() - depot.getEndTw()));
+		cost.addTwViol(cost.getTwViol() + cost.getDepotTwViol());
+
+		cost.setLoadViol(Math.max(0, cost.getLoad() - maxAllowedLoad));
+		cost.calculateTotal(alpha, beta, gamma);
+
+		this.setCost(cost);
+	}
+
+	/**
+	 * Two routes are equal if they have the same index
+	 * 
+	 * @param route
+	 * @return
+	 */
 	public boolean equals(Route route) {
 		return this.getIndex() == route.getIndex();
-	}
-	
-	/**
-	 * @return the index
-	 */
-	public int getIndex() {
-		return index;
-	}
-
-	public void setIndex(int index) {
-		this.index = index;
-	}
-
-	public Cost getCost() {
-		return cost;
-	}
-
-	public void setCost(Cost cost) {
-		this.cost = cost;
-	}
-
-	public Vehicle getAssignedVehicle() {
-		return assignedVehicle;
-	}
-
-	public void setAssignedVehicle(Vehicle assignedVehicle) {
-		this.assignedVehicle = assignedVehicle;
-	}
-
-	public Depot getDepot() {
-		return depot;
-	}
-
-	public void setDepot(Depot depot) {
-		this.depot = depot;
-	}
-
-	public List<Customer> getCustomers() {
-		return customers;
-	}
-
-	/**
-	 * @return Returns the customer in position i of this route
-	 */
-	public Customer getCustomers(int index) {
-		return customers.get(index);
-	}
-
-	public void setCustomers(List<Customer> customers) {
-		this.customers = new ArrayList<>(customers);
-	}
-
-	/**
-	 * Set a customer in the specified index.
-	 * 
-	 * @param customer
-	 *            - The Customer object to be added.
-	 * @param index
-	 *            - The index of the customer to be changed to the new customer.
-	 */
-	public void setCustomers(Customer customer, int index) {
-		this.customers.set(index, customer);
 	}
 
 	/**
@@ -128,81 +135,120 @@ public class Route {
 	public int indexOfCustomer(Customer customer) {
 		return customers.indexOf(customer);
 	}
-	
+
 	/**
-	 * Method that allows the calculation of the cost of a route. Not perfect yet as it
-	 * doesn't allow the modification of the parameters alpha, beta and gamma. Also the
-	 * max vehicle capacity has to be passed as parameters.
-	 * @param maxAllowedLoad
-	 * @return
-	 */
-	
-	public void calculateCost(double maxAllowedLoad, double alpha, double beta, double gamma)
-	{
-		Cost cost = new Cost();
-		Customer previousCustomer;
-		Customer currentCustomer = customers.get(0);
-		
-		// this should be fixed by adding a getDistance method to the depot
-		cost.setTravelTime(currentCustomer.getDistance(depot.getXCoordinate(), depot.getYCoordinate()));
-		cost.setLoad(currentCustomer.getLoad());
-		cost.setServiceTime(currentCustomer.getServiceDuration());
-		
-		currentCustomer.setArriveTime(depot.getStartTw() + cost.getTravelTime());
-		
-		currentCustomer.setWaitingTime(Math.max(0, currentCustomer.getStartTw() - currentCustomer.getArriveTime()));
-		cost.setWaitingTime(currentCustomer.getWaitingTime());
-		
-		currentCustomer.setTwViol(Math.max(0, currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
-		cost.addTwViol(currentCustomer.getTwViol());	
-		
-		for(int i = 1; i < customers.size(); i++)
-		{
-			previousCustomer = currentCustomer;
-			currentCustomer = customers.get(i);
-			
-			cost.setTravelTime(cost.getTravelTime() + previousCustomer.getDistance(currentCustomer.getXCoordinate(), currentCustomer.getYCoordinate()));
-			cost.setLoad(cost.getLoad() + currentCustomer.getLoad());
-			cost.setServiceTime(cost.getServiceTime() + currentCustomer.getServiceDuration());
-			
-			currentCustomer.setArriveTime(previousCustomer.getDepartureTime() + previousCustomer.getDistance(currentCustomer.getXCoordinate(), currentCustomer.getYCoordinate()));
-			
-			currentCustomer.setWaitingTime(Math.max(0, currentCustomer.getStartTw() - currentCustomer.getArriveTime()));
-			cost.setWaitingTime(cost.getWaitingTime() + currentCustomer.getWaitingTime());
-			
-			currentCustomer.setTwViol(Math.max(0, currentCustomer.getArriveTime() - currentCustomer.getEndTw()));
-			cost.addTwViol(cost.getTwViol() + currentCustomer.getTwViol());
-		}
-		
-		cost.setTravelTime(cost.getTravelTime() + currentCustomer.getDistance(depot.getXCoordinate(), depot.getYCoordinate()));
-		cost.setReturnToDepotTime(cost.getTravelTime());
-		cost.setDepotTwViol(Math.max(0, cost.getReturnToDepotTime() - depot.getEndTw()));
-		cost.addTwViol(cost.getTwViol() + cost.getDepotTwViol());
-		
-		cost.setLoadViol(Math.max(0, cost.getLoad() - maxAllowedLoad));
-		cost.calculateTotal(alpha, beta, gamma);
-		
-		this.setCost(cost);
-	}
-	
-	/**
-	 * 	Method that creates a route object containing only the fixed data of
-	 * route.
-	 * @return A Route object with the same index, assigned vehicle and depot
-	 * as the calling object.
+	 * Method that creates a route object containing only the fixed data of route.
+	 * 
+	 * @return A Route object with the same index, assigned vehicle and depot as the calling object.
 	 */
 	public Route copyRouteInformation() {
 		Route route = new Route();
-		
+
 		route.index = this.index;
-		
+
 		/*
-		 *   Passing directly the depot reference instead of a copy is safe
-		 *  as the depot object isn't supposed to be modified.
+		 * Passing directly the depot reference instead of a copy is safe as the depot object isn't
+		 * supposed to be modified.
 		 */
 		route.depot = this.depot;
-		route.assignedVehicle = new Vehicle(this.assignedVehicle.getVehicleNr(), this.assignedVehicle.getCapacity(), this.assignedVehicle.getDuration());
-		
+		route.assignedVehicle = new Vehicle(this.assignedVehicle.getVehicleNr(),
+				this.assignedVehicle.getCapacity(), this.assignedVehicle.getDuration());
+
 		return route;
 	}
+
+	/**
+	 * @return the index
+	 */
+	public int getIndex() {
+		return index;
+	}
+
+	/**
+	 * @param index
+	 *            the index to set
+	 */
+	public void setIndex(int index) {
+		this.index = index;
+	}
+
+	/**
+	 * @return the cost
+	 */
+	public Cost getCost() {
+		return cost;
+	}
+
+	/**
+	 * @param cost
+	 *            the cost to set
+	 */
+	public void setCost(Cost cost) {
+		this.cost = cost;
+	}
+
+	/**
+	 * @return the assignedVehicle
+	 */
+	public Vehicle getAssignedVehicle() {
+		return assignedVehicle;
+	}
+
+	/**
+	 * @param assignedVehicle
+	 *            the assignedVehicle to set
+	 */
+	public void setAssignedVehicle(Vehicle assignedVehicle) {
+		this.assignedVehicle = assignedVehicle;
+	}
+
+	/**
+	 * @return the depot
+	 */
+	public Depot getDepot() {
+		return depot;
+	}
+
+	/**
+	 * @param depot
+	 *            the depot to set
+	 */
+	public void setDepot(Depot depot) {
+		this.depot = depot;
+	}
+
+	/**
+	 * @return the customers
+	 */
+	public List<Customer> getCustomers() {
+		return customers;
+	}
+
+	/**
+	 * @return Returns the customer in position i of this route
+	 */
+	public Customer getCustomers(int index) {
+		return customers.get(index);
+	}
+
+	/**
+	 * @param customers
+	 *            the customers to set
+	 */
+	public void setCustomers(List<Customer> customers) {
+		this.customers = customers;
+	}
+
+	/**
+	 * Set a customer in the specified index.
+	 * 
+	 * @param customer
+	 *            - The Customer object to be added.
+	 * @param index
+	 *            - The index of the customer to be changed to the new customer.
+	 */
+	public void setCustomers(Customer customer, int index) {
+		this.customers.set(index, customer);
+	}
+
 }

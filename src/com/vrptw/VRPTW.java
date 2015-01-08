@@ -15,7 +15,6 @@ import com.tabusearch.MySearchProgram;
 import com.tabusearch.MySolution;
 
 /**
- * @author Guido Pio
  * 
  */
 public class VRPTW {
@@ -47,9 +46,9 @@ public class VRPTW {
 			// Init memory for Tabu Search
 			initialSol = new MySolution(instance);
 			objFunc = new MyObjectiveFunction(instance);
-			
+
 			initialSol.generateInitialSolution();
-			
+
 			initialSol.setObjectiveValue(objFunc.evaluate(initialSol, null));
 
 			// temporary just to see if initialSol works

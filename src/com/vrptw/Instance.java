@@ -24,10 +24,10 @@ public class Instance {
 	private Route[]				routes;
 	private Random				random		= new Random();
 	private Parameters			parameters;
-	
-	private double		alpha				= 1;
-	private double		beta				= 1;
-	private double		gamma				= 1;
+
+	private double				alpha		= 1;
+	private double				beta		= 1;
+	private double				gamma		= 1;
 
 	public Instance(Parameters parameters) {
 		this.setParameters(parameters);
@@ -37,17 +37,11 @@ public class Instance {
 	}
 
 	/**
-	 * @return The time necessary to travel from node 1 to node 2
-	 */
-	public double getTravelTime(int node1, int node2) {
-		return this.distances[node1][node2];
-	}
-
-	/**
 	 * Read from file the problem data: D and Q, customers data and depots data. After the variables
 	 * are populated calculates the distances and assign customers to depot.
 	 * 
-	 * @param filename - The name in the input directory from which to read the data.
+	 * @param filename
+	 *            - The name in the input directory from which to read the data.
 	 */
 	public void populateFromHombergFile(String filename) {
 		try {
@@ -116,12 +110,6 @@ public class Instance {
 	}
 
 	/**
-	 * 
-	 */
-	public void initializeRoutes() {
-	}
-
-	/**
 	 * Calculate the symmetric euclidean matrix of costs
 	 */
 	public void calculateDistances() {
@@ -148,6 +136,23 @@ public class Instance {
 				distances[j][i] = distances[i][j];
 			}
 		}
+	}
+
+	/**
+	 * @return The time necessary to travel from Customer1# to Customer2#
+	 */
+	public double getTravelTime(int node1, int node2) {
+		return this.distances[node1][node2];
+	}
+
+	/**
+	 * Return the distance of a customer from the Depot
+	 * 
+	 * @param customerNumber
+	 * @return the distance of the customer from the Depot
+	 */
+	public double getDepotDistence(int customerNumber) {
+		return this.distances[customerNumber][this.getCustomersNr()];
 	}
 
 	/**
@@ -183,7 +188,6 @@ public class Instance {
 	/**
 	 * @return the depotsNr
 	 */
-
 	public int getDepotsNr() {
 		return depotsNr;
 	}
@@ -199,7 +203,6 @@ public class Instance {
 	/**
 	 * @return the daysNr
 	 */
-
 	public int getDaysNr() {
 		return daysNr;
 	}
@@ -347,27 +350,49 @@ public class Instance {
 		return capacities[index];
 	}
 
+	/**
+	 * @return the alpha
+	 */
 	public double getAlpha() {
 		return alpha;
 	}
 
+	/**
+	 * @param alpha
+	 *            the alpha to set
+	 */
 	public void setAlpha(double alpha) {
 		this.alpha = alpha;
 	}
 
+	/**
+	 * @return the beta
+	 */
 	public double getBeta() {
 		return beta;
 	}
 
+	/**
+	 * @param beta
+	 *            the beta to set
+	 */
 	public void setBeta(double beta) {
 		this.beta = beta;
 	}
 
+	/**
+	 * @return the gamma
+	 */
 	public double getGamma() {
 		return gamma;
 	}
 
+	/**
+	 * @param gamma
+	 *            the gamma to set
+	 */
 	public void setGamma(double gamma) {
 		this.gamma = gamma;
 	}
+
 }

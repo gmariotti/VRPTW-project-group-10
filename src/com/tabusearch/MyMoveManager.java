@@ -32,9 +32,6 @@ public class MyMoveManager implements MoveManager {
 		MySolution mySol = (MySolution) solution;
 
 		switch (this.getMovesType()) {
-		/*
-		 * case SWAP: return getSwapMoves(mySol);
-		 */
 		case TWO_EXCHANGE:
 			return getTwoExchangeMoves(mySol);
 		default:

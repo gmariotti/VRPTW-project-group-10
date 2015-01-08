@@ -10,7 +10,9 @@ public class Vehicle {
 	private double	duration;
 
 	public Vehicle() {
-
+		vehicleNr = 0;
+		capacity = 0;
+		duration = 0;
 	}
 
 	public Vehicle(int vehicleNr, double capacity, double duration) {

@@ -22,61 +22,79 @@ public class Depot {
 	 * Return the formated string of the depot
 	 */
 	public String toString() {
-		String str = "Depot in coordinates (" + xCoordinate + ";" + yCoordinate + ")\n"
-				+ "that opens at " + startTw + " and closes at " + endTw;
-
-		return str;
+		StringBuffer print = new StringBuffer();
+		print.append("--- Depot ---" + "\n");
+		print.append("x=" + xCoordinate + " y=" + yCoordinate + "\n");
+		print.append("StartTW " + startTw + " EndTW " + endTw + "\n");
+		print.append("------" + "\n");
+		return print.toString();
 	}
 
+	/**
+	 * @return the number
+	 */
 	public int getNumber() {
 		return number;
 	}
 
+	/**
+	 * @param number the number to set
+	 */
 	public void setNumber(int number) {
 		this.number = number;
 	}
 
+	/**
+	 * @return the xCoordinate
+	 */
 	public double getXCoordinate() {
 		return xCoordinate;
 	}
 
+	/**
+	 * @param xCoordinate the xCoordinate to set
+	 */
 	public void setXCoordinate(double xCoordinate) {
 		this.xCoordinate = xCoordinate;
 	}
 
+	/**
+	 * @return the yCoordinate
+	 */
 	public double getYCoordinate() {
 		return yCoordinate;
 	}
 
+	/**
+	 * @param yCoordinate the yCoordinate to set
+	 */
 	public void setYCoordinate(double yCoordinate) {
 		this.yCoordinate = yCoordinate;
 	}
 
 	/**
-	 * @return The opening time of the depot.
+	 * @return the startTw
 	 */
 	public int getStartTw() {
 		return startTw;
 	}
 
 	/**
-	 * @param startTw
-	 *            - The opening time of the depot.
+	 * @param startTw the startTw to set
 	 */
 	public void setStartTw(int startTw) {
 		this.startTw = startTw;
 	}
 
 	/**
-	 * @return The closing time of the depot.
+	 * @return the endTw
 	 */
 	public int getEndTw() {
 		return endTw;
 	}
 
 	/**
-	 * @param endTw
-	 *            - The closing time of the depot.
+	 * @param endTw the endTw to set
 	 */
 	public void setEndTw(int endTw) {
 		this.endTw = endTw;

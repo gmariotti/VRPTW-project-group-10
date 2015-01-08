@@ -106,16 +106,20 @@ public class MyTwoExchangeMove implements Move {
 				instance.getAlpha(), instance.getBeta(), instance.getGamma());
 	}
 
-	public void print() {
-		System.out.println("MyTwoExchangeMove");
-		System.out.println("First Customer: " + firstCustomer.getNumber());
-		System.out.println("Second Customer: " + secondCustomer.getNumber());
-		System.out.println("Route involved:");
-		System.out.println("Route n." + firstRouteIndex + "and n." + secondRouteIndex);
+	@Override
+	public String toString() {
+		StringBuffer input = new StringBuffer();
+		input.append("--- TwoExchangeMove ---" + "\n");
+		input.append("Customer " + this.firstCustomer.getNumber() + " in Route "
+				+ this.firstRouteIndex + "\n");
+		input.append("Customer " + this.secondCustomer.getNumber() + " in Route "
+				+ this.secondRouteIndex + "\n");
+		input.append("------" + "\n");
+		return input.toString();
 	}
 
 	/**
-	 * Identify a move for the SimpleTabuList
+	 * Identify a move for the SimpleTabuList. Doesn't consider same customers from different routes
 	 * 
 	 * @return hash code that identify the move
 	 */
