@@ -124,6 +124,7 @@ public class MyTwoExchangeMove implements Move {
 	 * @return hash code that identify the move
 	 */
 	public int hashCode() {
+		// TODO
 		int firstCustN = firstCustomer.getNumber();
 		int secondCustN = secondCustomer.getNumber();
 		if (firstCustN > secondCustN) {

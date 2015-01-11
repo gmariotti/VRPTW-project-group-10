@@ -57,7 +57,7 @@ public class MySolution extends SolutionAdapter {
 	 *            .
 	 */
 	public void generateInitialSolution() {
-
+		// TODO
 	}
 
 	/**

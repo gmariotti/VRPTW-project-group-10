@@ -63,6 +63,8 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void tabuSearchStarted(TabuSearchEvent e) {
+		// TODO
+		
 		System.out.println("Iteration done: " + this.tabuSearch.getIterationsCompleted());
 
 		solution = ((MySolution) tabuSearch.getCurrentSolution());
@@ -87,6 +89,8 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void tabuSearchStopped(TabuSearchEvent e) {
+		// TODO
+		
 		if (!bestSolution.isFeasible()) {
 			feasibleCost.setTotal(Double.POSITIVE_INFINITY);
 		} else {
@@ -100,6 +104,8 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void newBestSolutionFound(TabuSearchEvent e) {
+		// TODO
+		
 		// this way we store the actual best solution
 		if (solution.isFeasible()
 				&& solution.getCost().getTotal() < bestSolution.getCost().getTotal()) {
@@ -113,6 +119,8 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void newCurrentSolutionFound(TabuSearchEvent event) {
+		// TODO
+		
 		solution = ((MySolution) tabuSearch.getCurrentSolution());
 	}
 
@@ -121,6 +129,7 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void unimprovingMoveMade(TabuSearchEvent e) {
+		// TODO
 	}
 
 	/*
@@ -128,6 +137,7 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void improvingMoveMade(TabuSearchEvent e) {
+		// TODO
 	}
 
 	/*
@@ -135,6 +145,7 @@ public class MySearchProgram implements TabuSearchListener {
 	 */
 	@Override
 	public void noChangeInValueMoveMade(TabuSearchEvent e) {
+		// TODO
 	}
 
 	/**
